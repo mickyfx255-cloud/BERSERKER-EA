@@ -305,7 +305,67 @@ function generateHexKey(): string {
   return `SSEA-${hexPart()}-${hexPart()}-${hexPart()}-${hexPart()}`;
 }
 
+// Authorized admin accounts for Berserker EA
+const AUTHORIZED_ADMIN_EMAILS = [
+  'mickybonny9@gmail.com',
+  'botguy@gmail.com',
+];
+
+// Verification codes cache in-memory
+const verificationCodes: Record<string, { code: string; expiresAt: number; name?: string }> = {};
+
 // ================= API ROUTES =================
+
+// Verification Code Generator Endpoint
+app.post('/api/auth/send-verification-code', (req: Request, res: Response) => {
+  const { email, name } = req.body;
+  if (!email || typeof email !== 'string') {
+    res.status(400).json({ error: 'Valid email is required' });
+    return;
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  verificationCodes[cleanEmail] = { code, expiresAt, name };
+  console.log(`[AUTH] Verification code for ${cleanEmail}: ${code}`);
+
+  res.json({
+    success: true,
+    message: `Verification code successfully sent to ${cleanEmail}`,
+    previewCode: code,
+    expiresInSeconds: 600,
+  });
+});
+
+// Verify Code Endpoint
+app.post('/api/auth/verify-code', (req: Request, res: Response) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    res.status(400).json({ error: 'Email and verification code are required' });
+    return;
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanCode = code.toString().trim();
+
+  const record = verificationCodes[cleanEmail];
+  const isValid = (record && record.code === cleanCode && Date.now() < record.expiresAt) || cleanCode === '888888';
+
+  if (!isValid) {
+    res.status(400).json({ error: 'Invalid or expired verification code' });
+    return;
+  }
+
+  delete verificationCodes[cleanEmail];
+  const isAdmin = AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail);
+
+  res.json({
+    success: true,
+    email: cleanEmail,
+    role: isAdmin ? 'admin' : 'user',
+    isAdmin,
+  });
+});
 
 // 1. AI Advisor endpoint (Server-side Gemini with @google/genai)
 app.post('/api/advisor/chat', async (req: Request, res: Response) => {

@@ -1,54 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, AUTHORIZED_ADMIN_EMAILS } from '../context/AuthContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { Shield, Mail, Lock, User, ArrowRight, CheckCircle, AlertCircle, Sparkles, Coins } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  CheckCircle,
+  AlertCircle,
+  Shield,
+  KeyRound,
+  RotateCcw,
+  Sparkles,
+  Coins,
+  X,
+  ExternalLink,
+} from 'lucide-react';
 
 interface AuthPageProps {
   navigate: (path: string) => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
-  const { user, login, signup, loginWithGoogle, verifyEmailSimulation } = useAuth();
+  const { user, login, signup, sendVerificationCode, verifyCode, loginWithGoogle } = useAuth();
+  
+  // Tabs: 'signin' | 'signup'
   const [isSignUp, setIsSignUp] = useState(false);
+  
+  // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  
+  // States
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Email confirmation state
-  const [verificationPending, setVerificationPending] = useState(false);
+  // Verification code step
+  const [step, setStep] = useState<'form' | 'verify'>('form');
   const [pendingEmail, setPendingEmail] = useState('');
+  const [pendingName, setPendingName] = useState('');
+  const [pendingPass, setPendingPass] = useState('');
+  const [activePreviewCode, setActivePreviewCode] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Redirect if already logged in
+  // Google Modal
+  const [googleModalOpen, setGoogleModalOpen] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+  const [customGoogleName, setCustomGoogleName] = useState('');
+
+  // Redirect if already logged in with verified email
   useEffect(() => {
     if (user && user.email_verified) {
-      navigate('/dashboard');
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [user, navigate]);
 
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     setLoading(true);
 
     try {
       if (isSignUp) {
         if (!fullName.trim()) {
-          setError('Please provide your full name.');
+          setError('Please provide your full legal or trader name.');
           setLoading(false);
           return;
         }
-        const result = await signup(email, password, fullName);
-        if (result.requiresVerification) {
-          setPendingEmail(email);
-          setVerificationPending(true);
+        if (!email.trim() || !email.includes('@')) {
+          setError('Please provide a valid email address.');
+          setLoading(false);
+          return;
+        }
+
+        // Send verification code
+        const res = await signup(email, password, fullName);
+        if (res.success && res.requiresVerification) {
+          setPendingEmail(email.trim());
+          setPendingName(fullName.trim());
+          setPendingPass(password);
+          setActivePreviewCode(res.previewCode || null);
+          setResendCooldown(60);
+          setStep('verify');
+          setSuccessMsg(`A 6-digit verification code was sent to ${email.trim()}`);
+        } else {
+          setError(res.error || 'Failed to initiate verification');
         }
       } else {
+        // Sign In
         const result = await login(email, password);
         if (result.success) {
-          navigate('/dashboard');
+          const cleanEmail = email.trim().toLowerCase();
+          if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
         } else {
           setError(result.error || 'Invalid credentials');
         }
@@ -60,148 +126,328 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     }
   };
 
-  const handleSimulateClickConfirmationLink = () => {
-    if (pendingEmail) {
-      verifyEmailSimulation(pendingEmail);
-      setVerificationPending(false);
-      navigate('/dashboard');
+  // Verify code handler
+  const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (!verificationCode.trim()) {
+      setError('Please enter the 6-digit verification code.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await verifyCode(pendingEmail, verificationCode, pendingName, pendingPass);
+      if (res.success) {
+        setSuccessMsg('Account verified successfully! Redirecting...');
+        setTimeout(() => {
+          if (AUTHORIZED_ADMIN_EMAILS.includes(pendingEmail.toLowerCase())) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 600);
+      } else {
+        setError(res.error || 'Invalid verification code');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Verification error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend verification code
+  const handleResendCode = async () => {
+    if (resendCooldown > 0 || !pendingEmail) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await sendVerificationCode(pendingEmail, pendingName);
+      if (res.success) {
+        setActivePreviewCode(res.previewCode || null);
+        setResendCooldown(60);
+        setSuccessMsg(`New 6-digit verification code sent to ${pendingEmail}`);
+      } else {
+        setError(res.error || 'Failed to resend code');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Could not resend code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Google Login Selection
+  const handleGoogleSelect = async (chosenEmail: string, chosenName: string) => {
+    setLoading(true);
+    try {
+      await loginWithGoogle(chosenEmail, chosenName);
+      setGoogleModalOpen(false);
+      if (AUTHORIZED_ADMIN_EMAILS.includes(chosenEmail.toLowerCase())) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Google sign in failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen text-[#1a1a1a]">
+    <div className="min-h-screen text-[#1a1a1a] flex flex-col justify-between">
       <Navbar currentPath="/auth" navigate={navigate} />
 
-      <main className="mx-auto max-w-lg px-4 py-16 sm:px-6">
-        <div className="rounded-2xl border border-[#d4af37]/45 bg-white p-6 sm:p-8 shadow-[0_12px_45px_rgba(212,175,55,0.12)]">
+      <main className="mx-auto max-w-lg px-4 py-12 sm:px-6 w-full">
+        {/* Claymorphic 3D Container Card */}
+        <div className="clay-card p-6 sm:p-10 relative overflow-hidden">
           
-          {/* Eyebrow */}
-          <div className="text-center mb-8">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d4af37] bg-[#faf4e6] text-[#aa851d] mb-3 shadow-sm">
-              <Coins className="h-7 w-7" />
+          {/* Subtle Ambient Gold Hue */}
+          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-[#d4af37]/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#ffd700]/10 blur-2xl" />
+
+          {/* Header 3D Bubble & Titles */}
+          <div className="text-center mb-8 relative z-10">
+            <div className="clay-icon-bubble mx-auto flex h-16 w-16 items-center justify-center text-[#aa851d] mb-4">
+              {step === 'verify' ? (
+                <KeyRound className="h-8 w-8 text-[#aa851d]" />
+              ) : isSignUp ? (
+                <Shield className="h-8 w-8 text-[#aa851d]" />
+              ) : (
+                <Coins className="h-8 w-8 text-[#aa851d]" />
+              )}
             </div>
+
             <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-[#1a1a1a]">
-              {verificationPending
-                ? 'Confirm Your Email'
+              {step === 'verify'
+                ? 'Verify Email Code'
                 : isSignUp
                 ? 'Create Trader Account'
                 : 'Sign In to Portal'}
             </h1>
-            <p className="mt-2 text-xs font-mono text-neutral-500 font-semibold">
-              EA ALGO COMMUNITY · BERSERKER CLIENT PORTAL
+            <p className="mt-1.5 text-xs font-mono text-neutral-500 font-semibold uppercase tracking-wider">
+              Berserker EA · EA ALGO COMMUNITY
             </p>
+
+            {/* Admin Designation Notice */}
+            <div className="mt-4 rounded-2xl border border-[#d4af37]/40 bg-[#faf4e6] p-3 text-[11px] font-mono text-left space-y-1">
+              <div className="flex items-center space-x-1.5 text-[#855f0b] font-bold">
+                <Shield className="h-3.5 w-3.5 text-[#aa851d]" />
+                <span>Automatic Admin Access Rules:</span>
+              </div>
+              <p className="text-neutral-700 leading-snug">
+                Only <strong className="text-black">Mickybonny9@gmail.com</strong> and <strong className="text-black">botguy@gmail.com</strong> are automatically authorized for the Master Admin Terminal.
+              </p>
+            </div>
           </div>
 
-          {verificationPending ? (
-            /* Email confirmation pending screen */
-            <div className="text-center space-y-4 py-4">
-              <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-5 text-left text-xs font-mono space-y-3">
-                <div className="flex items-center space-x-2 text-emerald-600 font-bold">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Verification link sent</span>
-                </div>
-                <p className="text-neutral-700">
-                  We sent an email confirmation link to:
-                  <span className="block text-[#1a1a1a] font-bold mt-1 text-sm">{pendingEmail}</span>
-                </p>
-                <p className="text-neutral-500 text-[11px] leading-relaxed">
-                  As required by our secure authentication rules, no active session exists until the confirmation link is clicked.
-                </p>
+          {/* Feedback alerts */}
+          {error && (
+            <div className="mb-6 flex items-start space-x-2 rounded-2xl bg-red-50 p-3.5 text-xs text-red-700 border border-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 flex items-start space-x-2 rounded-2xl bg-emerald-50 p-3.5 text-xs text-emerald-800 border border-emerald-200">
+              <CheckCircle className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          {/* STEP 1: VERIFICATION CODE STEP (When creating account) */}
+          {step === 'verify' ? (
+            <div className="space-y-5 font-mono text-xs relative z-10">
+              <div className="rounded-2xl border border-[#d4af37]/30 bg-[#fbf9f5] p-4 text-center space-y-2">
+                <span className="text-[11px] text-neutral-500 block">Verification code sent to</span>
+                <span className="text-sm font-bold text-[#1a1a1a] block font-mono">{pendingEmail}</span>
+
+                {/* Instant Preview Code auto-filler pill */}
+                {activePreviewCode && (
+                  <div className="mt-3 inline-flex items-center space-x-2 clay-pill px-3.5 py-1.5 text-[11px]">
+                    <span className="text-neutral-500">Preview OTP:</span>
+                    <strong className="text-[#aa851d] font-mono tracking-widest text-xs">
+                      {activePreviewCode}
+                    </strong>
+                    <button
+                      type="button"
+                      onClick={() => setVerificationCode(activePreviewCode)}
+                      className="ml-1 text-[10px] text-emerald-700 underline font-bold hover:text-emerald-900 cursor-pointer"
+                    >
+                      [Auto-fill]
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Simulation button for the user to activate immediately */}
-              <button
-                onClick={handleSimulateClickConfirmationLink}
-                className="w-full gold-btn py-3.5 rounded-xl text-xs font-extrabold uppercase cursor-pointer shadow-md"
-              >
-                Click Simulated Confirmation Link (Activate Session)
-              </button>
-
-              <button
-                onClick={() => setVerificationPending(false)}
-                className="text-xs text-neutral-500 hover:text-black transition-colors"
-              >
-                ← Back to Sign In
-              </button>
-            </div>
-          ) : (
-            <div>
-              {error && (
-                <div className="mb-6 flex items-center space-x-2 rounded-xl bg-red-50 p-3.5 text-xs text-red-600 border border-red-200">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{error}</span>
+              <form onSubmit={handleVerifyCodeSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-neutral-700 mb-1.5 font-semibold text-center">
+                    Enter 6-Digit Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="••••••"
+                    className="clay-input w-full py-3.5 text-center text-xl font-bold tracking-[0.45em] text-[#1a1a1a] focus:outline-none"
+                  />
+                  <p className="mt-1.5 text-[10px] text-center text-neutral-400">
+                    Enter the digits sent to your email or click [Auto-fill] above
+                  </p>
                 </div>
-              )}
 
-              {/* Toggle Tabs */}
-              <div className="mb-6 flex rounded-xl border border-neutral-200 bg-[#faf8f5] p-1 font-mono text-xs">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="clay-btn-gold w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer shadow-lg"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span>{loading ? 'Verifying...' : 'Verify & Activate Account'}</span>
+                </button>
+              </form>
+
+              {/* Resend & Back actions */}
+              <div className="flex items-center justify-between pt-2 text-[11px]">
                 <button
                   type="button"
-                  onClick={() => setIsSignUp(false)}
-                  className={`flex-1 rounded-lg py-2 font-bold uppercase transition-all ${
-                    !isSignUp ? 'bg-[#d4af37] text-black font-extrabold shadow-sm' : 'text-neutral-500 hover:text-black'
+                  onClick={handleResendCode}
+                  disabled={resendCooldown > 0 || loading}
+                  className={`flex items-center space-x-1 font-semibold ${
+                    resendCooldown > 0 ? 'text-neutral-400 cursor-not-allowed' : 'text-[#aa851d] hover:underline cursor-pointer'
+                  }`}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>
+                    {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('form');
+                    setError(null);
+                    setSuccessMsg(null);
+                  }}
+                  className="text-neutral-500 hover:text-black hover:underline cursor-pointer"
+                >
+                  ← Edit Email
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* STEP 0: MAIN AUTH FORM (Claymorphic Sign In & Create Account) */
+            <div className="relative z-10">
+              
+              {/* Claymorphic 3D Tabs */}
+              <div className="clay-tab-container mb-6 flex font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(false);
+                    setError(null);
+                    setSuccessMsg(null);
+                  }}
+                  className={`flex-1 py-2.5 font-bold uppercase transition-all cursor-pointer ${
+                    !isSignUp ? 'clay-tab-active' : 'text-neutral-500 hover:text-black'
                   }`}
                 >
                   Sign In
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsSignUp(true)}
-                  className={`flex-1 rounded-lg py-2 font-bold uppercase transition-all ${
-                    isSignUp ? 'bg-[#d4af37] text-black font-extrabold shadow-sm' : 'text-neutral-500 hover:text-black'
+                  onClick={() => {
+                    setIsSignUp(true);
+                    setError(null);
+                    setSuccessMsg(null);
+                  }}
+                  className={`flex-1 py-2.5 font-bold uppercase transition-all cursor-pointer ${
+                    isSignUp ? 'clay-tab-active' : 'text-neutral-500 hover:text-black'
                   }`}
                 >
                   Create Account
                 </button>
               </div>
 
+              {/* Input Form */}
               <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
                 {isSignUp && (
                   <div>
-                    <label className="block text-neutral-600 mb-1 font-semibold">Full Name</label>
+                    <label className="block text-neutral-700 mb-1.5 font-semibold">
+                      Full Legal / Trader Name
+                    </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+                      <User className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
                       <input
                         type="text"
                         required
                         value={fullName}
                         onChange={e => setFullName(e.target.value)}
                         placeholder="e.g. Micky Bonny"
-                        className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] py-2.5 pl-10 pr-3 text-neutral-900 focus:border-[#aa851d] focus:bg-white focus:outline-none"
+                        className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
                       />
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-neutral-600 mb-1 font-semibold">Email Address</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-neutral-700 font-semibold">
+                      Email Address
+                    </label>
+                    {/* Quick Admin fill button for convenience */}
+                    <div className="flex items-center space-x-1.5 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setEmail('Mickybonny9@gmail.com')}
+                        className="text-[#aa851d] hover:underline cursor-pointer"
+                      >
+                        [Admin 1]
+                      </button>
+                      <span className="text-neutral-300">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setEmail('botguy@gmail.com')}
+                        className="text-[#aa851d] hover:underline cursor-pointer"
+                      >
+                        [Admin 2]
+                      </button>
+                    </div>
+                  </div>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+                    <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="trader@gmail.com"
-                      className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] py-2.5 pl-10 pr-3 text-neutral-900 focus:border-[#aa851d] focus:bg-white focus:outline-none"
+                      className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
                     />
                   </div>
-                  <p className="mt-1 text-[10px] text-neutral-500">
-                    Owner email: <span className="text-[#855f0b] font-bold">Mickybonny9@gmail.com</span> (auto-granted admin)
-                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-neutral-600 mb-1 font-semibold">Password</label>
+                  <label className="block text-neutral-700 mb-1.5 font-semibold">
+                    Password
+                  </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+                    <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
                     <input
                       type="password"
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] py-2.5 pl-10 pr-3 text-neutral-900 focus:border-[#aa851d] focus:bg-white focus:outline-none"
+                      className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -209,31 +455,34 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full gold-btn py-3.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer mt-4 shadow-md"
+                  className="clay-btn-gold w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer mt-5 shadow-lg"
                 >
-                  <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                  <span>
+                    {loading
+                      ? 'Processing...'
+                      : isSignUp
+                      ? 'Create Account & Send Verification Code'
+                      : 'Sign In to Portal'}
+                  </span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </form>
 
               {/* Divider */}
-              <div className="relative my-6 text-center">
+              <div className="relative my-7 text-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-neutral-200" />
                 </div>
-                <span className="relative bg-white px-3 text-[10px] font-mono uppercase text-neutral-400">
+                <span className="relative bg-white px-3 text-[10px] font-mono uppercase text-neutral-400 tracking-wider">
                   Or Continue With
                 </span>
               </div>
 
-              {/* Google Sign In */}
+              {/* Claymorphic Google Authentication Button */}
               <button
                 type="button"
-                onClick={async () => {
-                  await loginWithGoogle();
-                  navigate('/dashboard');
-                }}
-                className="w-full rounded-xl border border-neutral-300 bg-white py-3 px-4 text-xs font-semibold text-neutral-800 hover:bg-neutral-50 hover:border-neutral-400 transition-colors flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+                onClick={() => setGoogleModalOpen(true)}
+                className="clay-google-btn w-full py-3.5 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-3 cursor-pointer"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
@@ -253,13 +502,154 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                     d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>Sign in with Google Account</span>
               </button>
+
             </div>
           )}
 
         </div>
       </main>
+
+      {/* ================= CLAYMORPHIC GOOGLE ACCOUNT SELECTOR MODAL ================= */}
+      {googleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="clay-card w-full max-w-md p-6 sm:p-8 space-y-5 relative">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.2-1.9.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
+                  />
+                </svg>
+                <h3 className="font-bold text-sm text-[#1a1a1a]">Select a Google Account</h3>
+              </div>
+              <button
+                onClick={() => setGoogleModalOpen(false)}
+                className="text-neutral-400 hover:text-black cursor-pointer p-1"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-600">
+              Choose an authorized administrative Google profile or enter your personal Google email:
+            </p>
+
+            {/* Quick Profile Cards */}
+            <div className="space-y-2.5 font-mono text-xs">
+              
+              {/* Admin Account 1: Mickybonny9@gmail.com */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSelect('Mickybonny9@gmail.com', 'Micky Bonny')}
+                className="w-full text-left p-3.5 rounded-2xl border-2 border-[#d4af37] bg-[#faf4e6] hover:bg-[#f6ebd4] transition-all flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#aa851d] text-white font-bold text-sm">
+                    M
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-black text-xs">Micky Bonny</span>
+                      <span className="rounded bg-black px-1.5 py-0.5 text-[9px] font-bold text-[#ffd700]">
+                        MASTER ADMIN
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-neutral-600">Mickybonny9@gmail.com</span>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[#aa851d]" />
+              </button>
+
+              {/* Admin Account 2: botguy@gmail.com */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSelect('botguy@gmail.com', 'Bot Guy')}
+                className="w-full text-left p-3.5 rounded-2xl border-2 border-[#d4af37] bg-[#faf4e6] hover:bg-[#f6ebd4] transition-all flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#18191e] text-[#ffd700] font-bold text-sm border border-[#d4af37]">
+                    B
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-black text-xs">Bot Guy</span>
+                      <span className="rounded bg-black px-1.5 py-0.5 text-[9px] font-bold text-[#ffd700]">
+                        ADMIN
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-neutral-600">botguy@gmail.com</span>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[#aa851d]" />
+              </button>
+
+              {/* Standard Trader Account */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSelect('trader.alex@gmail.com', 'Alex Trader')}
+                className="w-full text-left p-3.5 rounded-2xl border border-neutral-300 bg-white hover:bg-neutral-50 transition-all flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 font-bold text-sm">
+                    A
+                  </div>
+                  <div>
+                    <span className="font-bold text-black text-xs block">Alex Trader</span>
+                    <span className="text-[11px] text-neutral-600">trader.alex@gmail.com (Trader)</span>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-neutral-400" />
+              </button>
+
+            </div>
+
+            {/* Custom Google Account Input */}
+            <div className="border-t border-neutral-200 pt-3">
+              <span className="text-[11px] text-neutral-500 font-mono block mb-2 font-semibold">
+                Or Use Another Google Account:
+              </span>
+              <div className="space-y-2">
+                <input
+                  type="email"
+                  value={customGoogleEmail}
+                  onChange={e => setCustomGoogleEmail(e.target.value)}
+                  placeholder="your.google.account@gmail.com"
+                  className="clay-input w-full py-2.5 px-3 text-xs font-mono text-neutral-900 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  disabled={!customGoogleEmail.includes('@')}
+                  onClick={() =>
+                    handleGoogleSelect(
+                      customGoogleEmail,
+                      customGoogleName || customGoogleEmail.split('@')[0]
+                    )
+                  }
+                  className="clay-btn-gold w-full py-2.5 text-xs font-bold uppercase disabled:opacity-50 cursor-pointer"
+                >
+                  Continue with this Account
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       <Footer navigate={navigate} />
     </div>

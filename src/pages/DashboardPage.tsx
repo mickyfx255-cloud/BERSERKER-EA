@@ -10,7 +10,7 @@ interface DashboardPageProps {
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
-  const { user, isAdmin, logout, toggleAdminRoleForTesting } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -84,23 +84,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-3">
-            {isAdmin && (
-              <button
-                onClick={() => navigate('/admin')}
-                className="gold-btn rounded-xl px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider flex items-center space-x-2 cursor-pointer shadow-md"
-              >
-                <Terminal className="h-4 w-4" />
-                <span>Open Admin</span>
-              </button>
+            {isAdmin ? (
+              <>
+                <span className="px-3 py-1.5 rounded-xl bg-[#faf4e6] border border-[#d4af37]/60 text-xs font-mono font-bold text-[#855f0b] flex items-center space-x-1.5 shadow-xs">
+                  <Shield className="h-3.5 w-3.5 text-[#aa851d]" />
+                  <span>Verified Admin</span>
+                </span>
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="gold-btn rounded-xl px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider flex items-center space-x-2 cursor-pointer shadow-md"
+                >
+                  <Terminal className="h-4 w-4" />
+                  <span>Open Admin Terminal</span>
+                </button>
+              </>
+            ) : (
+              <span className="px-3 py-1.5 rounded-xl bg-neutral-100 border border-neutral-200 text-xs font-mono text-neutral-600 shadow-xs">
+                Standard Trader
+              </span>
             )}
-
-            <button
-              onClick={toggleAdminRoleForTesting}
-              title="Toggle role for demonstration"
-              className="rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs font-mono text-neutral-700 hover:text-black hover:border-[#aa851d] transition-colors shadow-xs"
-            >
-              Switch Role ({isAdmin ? 'to User' : 'to Admin'})
-            </button>
 
             <button
               onClick={logout}

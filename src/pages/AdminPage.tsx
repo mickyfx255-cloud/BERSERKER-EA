@@ -306,18 +306,48 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center p-4">
-        <div className="rounded-2xl p-8 max-w-md text-center space-y-4 bg-white border border-[#d4af37] shadow-xl">
-          <AlertTriangle className="h-10 w-10 text-[#aa851d] mx-auto" />
-          <h2 className="text-xl font-bold uppercase text-[#1a1a1a]">Access Prohibited</h2>
-          <p className="text-xs text-neutral-600">
-            This administration gateway requires verified server-side administrator credentials.
+        <div className="clay-card p-8 sm:p-10 max-w-lg text-center space-y-5">
+          <div className="clay-icon-bubble mx-auto flex h-16 w-16 items-center justify-center text-red-500">
+            <Lock className="h-8 w-8 text-red-500" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-extrabold uppercase text-[#1a1a1a]">
+            Restricted Admin Panel
+          </h2>
+          <p className="text-xs font-mono text-neutral-600 leading-relaxed">
+            Automatic access to the Berserker EA Administration Terminal is strictly reserved for authorized administrator accounts.
           </p>
-          <button
-            onClick={() => navigate('/auth')}
-            className="gold-btn px-6 py-2.5 rounded-xl text-xs font-bold uppercase text-black"
-          >
-            Sign In with Owner Account
-          </button>
+
+          <div className="rounded-2xl border border-[#d4af37]/40 bg-[#faf4e6] p-4 text-xs font-mono space-y-2 text-left">
+            <div className="flex items-center space-x-2 text-[#855f0b] font-bold">
+              <Shield className="h-4 w-4 text-[#aa851d]" />
+              <span>Designated Admin Accounts:</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-neutral-800 font-semibold pl-2">
+              <li>Mickybonny9@gmail.com</li>
+              <li>botguy@gmail.com</li>
+            </ul>
+          </div>
+
+          {user && (
+            <p className="text-[11px] font-mono text-red-600">
+              Current account <span className="font-bold underline">{user.email}</span> does not have admin permissions.
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 pt-2 font-mono">
+            <button
+              onClick={() => navigate('/auth')}
+              className="clay-btn-gold py-3.5 px-6 rounded-2xl text-xs font-extrabold uppercase text-black cursor-pointer shadow-md"
+            >
+              Sign In with Authorized Admin Account
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="text-neutral-500 hover:text-black text-xs font-semibold py-1 cursor-pointer"
+            >
+              ← Return to Storefront
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -345,7 +375,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 </span>
               </div>
               <p className="text-xs font-mono text-neutral-500 font-semibold">
-                Owner Operator: <span className="text-[#855f0b]">Mickybonny9@gmail.com</span> · EA ALGO COMMUNITY
+                Authorized Operators: <span className="text-[#855f0b] font-bold">Mickybonny9@gmail.com</span> &amp; <span className="text-[#855f0b] font-bold">botguy@gmail.com</span> · EA ALGO COMMUNITY
               </p>
             </div>
           </div>

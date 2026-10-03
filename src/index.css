@@ -193,6 +193,147 @@ html {
   color: #e11d48;
 }
 
+/* ================= CLAYMORPHISM SYSTEM ================= */
+.clay-card {
+  background: #ffffff;
+  border-radius: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    inset 4px 4px 8px rgba(255, 255, 255, 0.95),
+    inset -4px -4px 8px rgba(212, 175, 55, 0.16),
+    0 24px 50px -12px rgba(170, 133, 29, 0.15),
+    0 8px 24px -4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clay-card-dark {
+  background: linear-gradient(145deg, #1f2026 0%, #121317 100%);
+  border-radius: 32px;
+  border: 2px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 
+    inset 3px 3px 6px rgba(255, 255, 255, 0.1),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.7),
+    0 24px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.clay-input {
+  background: #fbf9f5;
+  border-radius: 18px;
+  border: 1.5px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 
+    inset 3px 3px 6px rgba(0, 0, 0, 0.05),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.95),
+    0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.clay-input:focus {
+  border-color: #d4af37;
+  background: #ffffff;
+  box-shadow: 
+    inset 2px 2px 4px rgba(0, 0, 0, 0.04),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.95),
+    0 0 0 3.5px rgba(212, 175, 55, 0.2);
+}
+
+.clay-btn-gold {
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 55%, #b38618 100%);
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 
+    inset 3px 3px 5px rgba(255, 255, 255, 0.7),
+    inset -3px -3px 5px rgba(133, 95, 11, 0.45),
+    0 14px 28px -6px rgba(212, 175, 55, 0.45),
+    0 6px 12px -2px rgba(0, 0, 0, 0.08);
+  color: #111215;
+  font-weight: 800;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clay-btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 3px 3px 6px rgba(255, 255, 255, 0.85),
+    inset -3px -3px 6px rgba(133, 95, 11, 0.5),
+    0 18px 36px -6px rgba(212, 175, 55, 0.6);
+}
+
+.clay-btn-gold:active {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 3px 3px 6px rgba(133, 95, 11, 0.6),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.4),
+    0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.clay-tab-container {
+  background: #f4ede0;
+  border-radius: 22px;
+  padding: 5px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 
+    inset 3px 3px 6px rgba(0, 0, 0, 0.06),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.9);
+}
+
+.clay-tab-active {
+  background: #ffffff;
+  border-radius: 17px;
+  box-shadow: 
+    inset 2px 2px 4px rgba(255, 255, 255, 0.95),
+    inset -2px -2px 4px rgba(212, 175, 55, 0.2),
+    0 6px 16px -2px rgba(212, 175, 55, 0.25);
+  color: #111215;
+  font-weight: 800;
+}
+
+.clay-icon-bubble {
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #faf4e6 100%);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    inset 4px 4px 7px rgba(255, 255, 255, 0.95),
+    inset -4px -4px 7px rgba(212, 175, 55, 0.22),
+    0 12px 24px -6px rgba(170, 133, 29, 0.2);
+}
+
+.clay-google-btn {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    inset 3px 3px 5px rgba(255, 255, 255, 0.95),
+    inset -3px -3px 5px rgba(0, 0, 0, 0.05),
+    0 10px 22px -4px rgba(0, 0, 0, 0.07);
+  transition: all 0.2s ease;
+}
+
+.clay-google-btn:hover {
+  transform: translateY(-1.5px);
+  background: #ffffff;
+  box-shadow: 
+    inset 3px 3px 5px rgba(255, 255, 255, 1),
+    inset -3px -3px 5px rgba(0, 0, 0, 0.06),
+    0 14px 28px -4px rgba(0, 0, 0, 0.12);
+}
+
+.clay-google-btn:active {
+  transform: translateY(1.5px);
+  box-shadow: 
+    inset 3px 3px 5px rgba(0, 0, 0, 0.08),
+    0 3px 6px rgba(0, 0, 0, 0.06);
+}
+
+.clay-pill {
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9),
+    inset -2px -2px 4px rgba(212, 175, 55, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
