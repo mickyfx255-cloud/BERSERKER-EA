@@ -6,7 +6,6 @@ import { ProductPage } from './pages/ProductPage';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
-import { PoolManagementPage } from './pages/PoolManagementPage';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
@@ -46,9 +45,6 @@ export default function App() {
     } else if (currentPath === '/admin') {
       title = 'Admin Operations — BERSERKER EA';
       description = 'EA ALGO COMMUNITY administrative console: product pricing, order flow, live bot results, and MQL5 license generation.';
-    } else if (currentPath === '/pool-management') {
-      title = 'Pool Account Management — EA ALGO COMMUNITY & @XTECHNG';
-      description = 'Independent luxury pool account trading program. $200 minimum starting amount, $1,000+ campaign target, direct access via @XTECHNG.';
     }
 
     document.title = title;
@@ -74,8 +70,6 @@ export default function App() {
         return <DashboardPage navigate={navigate} />;
       case '/admin':
         return <AdminPage navigate={navigate} />;
-      case '/pool-management':
-        return <PoolManagementPage navigate={navigate} />;
       case '/':
       default:
         return <HomePage navigate={navigate} />;

@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   name: string;
+  brand?: string;
   tagline: string;
   description: string;
   price: number | null; // null = "Price coming soon"
@@ -12,6 +13,9 @@ export interface Product {
   min_deposit: number;
   recommended_pairs: string[];
   timeframe: string;
+  image_url?: string;
+  pillars?: string[];
+  badge?: string;
 }
 
 export interface Order {

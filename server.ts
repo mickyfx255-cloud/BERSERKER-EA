@@ -29,6 +29,7 @@ const DATA_FILE = path.resolve(process.cwd(), '.app_data.json');
 interface Product {
   id: string;
   name: string;
+  brand?: string;
   tagline: string;
   description: string;
   price: number | null; // null represents "Price coming soon"
@@ -40,6 +41,9 @@ interface Product {
   min_deposit: number;
   recommended_pairs: string[];
   timeframe: string;
+  image_url?: string;
+  pillars?: string[];
+  badge?: string;
 }
 
 interface Order {
