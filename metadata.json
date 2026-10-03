@@ -1,0 +1,6 @@
+{
+  "name": "BERSERKER EA — Smart Scalper MT5 & Pool Management",
+  "description": "Official portal for BERSERKER EA (Smart Scalper EA) for MetaTrader 5 and independent Pool Account Management by EA ALGO COMMUNITY.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

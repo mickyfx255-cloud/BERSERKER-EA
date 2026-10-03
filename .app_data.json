@@ -1,0 +1,133 @@
+{
+  "products": [
+    {
+      "id": "prod-smart-scalper-01",
+      "name": "Smart Scalper EA",
+      "tagline": "Precision High-Frequency MT5 Execution Robot",
+      "description": "Automated algorithmic trading system built exclusively for MetaTrader 5. Features proprietary dynamic micro-trend detection, sub-millisecond execution logic, and automated strict risk ceiling controls.",
+      "price": null,
+      "currency": "USD",
+      "active": true,
+      "featured": true,
+      "version": "v2.4.1",
+      "platform": "MetaTrader 5 (MT5)",
+      "min_deposit": 100,
+      "recommended_pairs": [
+        "EURUSD",
+        "XAUUSD",
+        "GBPUSD",
+        "NAS100"
+      ],
+      "timeframe": "M1 / M5"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-89410",
+      "user_email": "trader.alex@gmail.com",
+      "user_name": "Alexandre Dubois",
+      "product_id": "prod-smart-scalper-01",
+      "product_name": "Smart Scalper EA",
+      "amount": null,
+      "currency": "USD",
+      "status": "pending",
+      "created_at": "2026-10-03T02:15:24.303Z",
+      "mt5_account": "51092834",
+      "notes": "Inquired via WhatsApp for VIP bundle"
+    },
+    {
+      "id": "ORD-89402",
+      "user_email": "j.mwamba@yahoo.com",
+      "user_name": "Joseph Mwamba",
+      "product_id": "prod-smart-scalper-01",
+      "product_name": "Smart Scalper EA",
+      "amount": 250,
+      "currency": "USD",
+      "status": "completed",
+      "created_at": "2026-10-02T02:15:24.303Z",
+      "mt5_account": "89102431",
+      "notes": "Setup completed on IC Markets Raw Spread"
+    }
+  ],
+  "bot_results": [
+    {
+      "id": "res-1",
+      "user_email": "j.mwamba@yahoo.com",
+      "user_name": "Joseph Mwamba",
+      "account_number": "89102431",
+      "broker": "IC Markets",
+      "symbol": "XAUUSD",
+      "trades_count": 84,
+      "win_rate": 78.5,
+      "open_pnl": 42.1,
+      "total_profit": 348.6,
+      "last_trade_time": "2026-10-03T06:03:24.303Z",
+      "status": "active"
+    },
+    {
+      "id": "res-2",
+      "user_email": "rashid.k@gmail.com",
+      "user_name": "Rashid K.",
+      "account_number": "7729104",
+      "broker": "Exness Pro",
+      "symbol": "EURUSD",
+      "trades_count": 142,
+      "win_rate": 81.2,
+      "open_pnl": 18.5,
+      "total_profit": 612,
+      "last_trade_time": "2026-10-03T06:10:24.303Z",
+      "status": "active"
+    },
+    {
+      "id": "res-3",
+      "user_email": "marcus.t@outlook.com",
+      "user_name": "Marcus Thorne",
+      "account_number": "9940129",
+      "broker": "RoboForex ECN",
+      "symbol": "NAS100",
+      "trades_count": 67,
+      "win_rate": 76.1,
+      "open_pnl": -12.4,
+      "total_profit": 420.8,
+      "last_trade_time": "2026-10-03T05:40:24.303Z",
+      "status": "active"
+    }
+  ],
+  "licenses": [
+    {
+      "id": "lic-1",
+      "buyer_email": "j.mwamba@yahoo.com",
+      "buyer_name": "Joseph Mwamba",
+      "license_key": "SSEA-A7F291-C8419B-94E012-3D1488",
+      "mt5_account": "89102431",
+      "status": "active",
+      "duration_type": "months",
+      "duration_value": 3,
+      "created_at": "2026-09-18T06:15:24.303Z",
+      "expires_at": "2026-12-17T06:15:24.303Z",
+      "last_check_at": "2026-10-03T06:59:28.645Z"
+    },
+    {
+      "id": "lic-2",
+      "buyer_email": "rashid.k@gmail.com",
+      "buyer_name": "Rashid K.",
+      "license_key": "SSEA-4B991C-01EF83-AA3401-BC7712",
+      "mt5_account": "7729104",
+      "status": "active",
+      "duration_type": "days",
+      "duration_value": 30,
+      "created_at": "2026-09-07T06:15:24.303Z",
+      "expires_at": "2026-10-07T06:15:24.303Z",
+      "last_check_at": "2026-10-03T06:09:24.303Z"
+    }
+  ],
+  "ea_sources": [
+    {
+      "id": "src-1",
+      "name": "Smart Scalper EA v2.4.1 (Stable)",
+      "code": "//+------------------------------------------------------------------+\n//|                                              Smart Scalper EA.mq5|\n//|                                  Copyright 2026, EA ALGO COMMUNITY|\n//|                                              https://wa.me/255610366248 |\n//+------------------------------------------------------------------+\n#property copyright \"EA ALGO COMMUNITY\"\n#property link      \"https://wa.me/255610366248\"\n#property version   \"1.00\"\n#property strict\n\n//--- Inputs\ninput string   InpLicenseKey    = \"SSEA-XXXXXX-XXXXXX-XXXXXX-XXXXXX\"; // License Key\ninput double   InpLotSize       = 0.01;                               // Fixed Lot Size\ninput int      InpStopLoss      = 35;                                 // Stop Loss (Points)\ninput int      InpTakeProfit    = 50;                                 // Take Profit (Points)\ninput int      InpTrailingStop  = 20;                                 // Trailing Stop (Points)\ninput int      InpMagicNumber   = 882910;                             // Magic Number\ninput bool     InpUseAutoRisk   = false;                              // Dynamic Risk Calculation\ninput double   InpRiskPercent   = 1.0;                                // Risk Percent per trade\n\n//+------------------------------------------------------------------+\n//| Expert initialization function                                   |\n//+------------------------------------------------------------------+\nint OnInit()\n{\n   Print(\"Initializing Smart Scalper EA by EA ALGO COMMUNITY...\");\n   \n   // Verify MT5 WebRequest license if configured\n   if(!CheckLicense(InpLicenseKey, AccountInfoInteger(ACCOUNT_LOGIN)))\n   {\n      Alert(\"[FATAL] Smart Scalper EA: License verification failed or expired!\");\n      return(INIT_FAILED);\n   }\n\n   Print(\"Smart Scalper EA successfully authenticated and active.\");\n   return(INIT_SUCCEEDED);\n}\n\n//+------------------------------------------------------------------+\n//| Expert deinitialization function                                 |\n//+------------------------------------------------------------------+\nvoid OnDeinit(const int reason)\n{\n   Print(\"Smart Scalper EA stopped. Reason: \", reason);\n}\n\n//+------------------------------------------------------------------+\n//| Expert tick function                                             |\n//+------------------------------------------------------------------+\nvoid OnTick()\n{\n   // Algorithmic execution logic goes here...\n}\n",
+      "version": "v2.4.1",
+      "updated_at": "2026-10-01T06:15:24.303Z"
+    }
+  ]
+}
