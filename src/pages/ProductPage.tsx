@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Product } from '../types';
+import { DEFAULT_PRODUCT } from '../data/defaultProduct';
 import { useAuth } from '../context/AuthContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -12,8 +13,8 @@ interface ProductPageProps {
 
 export const ProductPage: React.FC<ProductPageProps> = ({ navigate }) => {
   const { user } = useAuth();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<Product>(DEFAULT_PRODUCT);
+  const [loading, setLoading] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [mt5Account, setMt5Account] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
@@ -22,13 +23,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({ navigate }) => {
 
   useEffect(() => {
     fetch('/api/products')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('API unavailable');
+        return res.json();
+      })
       .then((data: Product[]) => {
         if (data && data.length > 0) {
           setProduct(data[0]);
         }
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

@@ -12,24 +12,31 @@ import { MentorshipSection } from '../components/MentorshipSection';
 import { Footer } from '../components/Footer';
 import { FadeInOnScroll } from '../components/FadeInOnScroll';
 
+import { DEFAULT_PRODUCT } from '../data/defaultProduct';
+
 interface HomePageProps {
   navigate: (path: string) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<Product>(DEFAULT_PRODUCT);
 
   useEffect(() => {
     // Fetch products from server (active only)
     fetch('/api/products')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('API unavailable');
+        return res.json();
+      })
       .then((data: Product[]) => {
         if (data && data.length > 0) {
           // Storefront shows only the single product (Smart Scalper EA)
           setProduct(data[0]);
         }
       })
-      .catch(err => console.error('Error fetching product:', err));
+      .catch(() => {
+        // Fallback to default product already loaded
+      });
   }, []);
 
   const scrollTo = (id: string) => {
