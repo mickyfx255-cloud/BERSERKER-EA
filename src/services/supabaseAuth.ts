@@ -104,8 +104,14 @@ export async function sendSupabaseConfirmationEmail(
 
   saveEmailLog(emailLog);
 
-  // Store active token in session storage for verification check
-  sessionStorage.setItem(`supabase_token_${cleanEmail}`, token);
+  // Store active token in localStorage and sessionStorage for bulletproof persistence
+  try {
+    localStorage.setItem(`supabase_token_${cleanEmail}`, token);
+    localStorage.setItem(`verify_code_${cleanEmail}`, token);
+    sessionStorage.setItem(`supabase_token_${cleanEmail}`, token);
+  } catch {
+    // ignore
+  }
 
   return {
     success: true,

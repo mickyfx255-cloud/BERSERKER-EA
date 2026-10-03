@@ -187,11 +187,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     }
 
     try {
-      const res = await verifyCode(pendingEmail, verificationCode, pendingName, pendingPass);
+      const targetEmail = (pendingEmail || user?.email || email).trim().toLowerCase();
+      const res = await verifyCode(targetEmail, verificationCode, pendingName, pendingPass);
       if (res.success) {
         setSuccessMsg('Account confirmed! Welcome email with MT5 setup guide triggered. Redirecting...');
         setTimeout(() => {
-          if (AUTHORIZED_ADMIN_EMAILS.includes(pendingEmail.toLowerCase())) {
+          if (AUTHORIZED_ADMIN_EMAILS.includes(targetEmail)) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
@@ -207,16 +208,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     }
   };
 
-  // Direct confirmation from email modal
-  const handleDirectConfirmFromModal = async (token: string) => {
+  // Direct confirmation from email modal or button
+  const handleDirectConfirmFromModal = async (token?: string) => {
     setError(null);
     setLoading(true);
     try {
-      const res = await confirmEmailDirectly(pendingEmail, token);
+      const targetEmail = (pendingEmail || user?.email || email).trim().toLowerCase();
+      const res = await confirmEmailDirectly(targetEmail, token);
       if (res.success) {
         setSuccessMsg('Email verified! Welcome email triggered. Redirecting...');
         setTimeout(() => {
-          if (AUTHORIZED_ADMIN_EMAILS.includes(pendingEmail.toLowerCase())) {
+          if (AUTHORIZED_ADMIN_EMAILS.includes(targetEmail)) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
@@ -337,21 +339,31 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 <span className="text-sm font-bold text-[#1a1a1a] block font-mono">{pendingEmail}</span>
 
                 {/* Instant Preview Token auto-filler pill */}
-                {activePreviewCode && (
+                {(activePreviewCode || (pendingEmail && localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`))) && (
                   <div className="mt-3 inline-flex items-center space-x-2 clay-pill px-3.5 py-1.5 text-[11px]">
                     <span className="text-neutral-500">Supabase Token:</span>
                     <strong className="text-[#aa851d] font-mono tracking-widest text-xs">
-                      {activePreviewCode}
+                      {activePreviewCode || localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`)}
                     </strong>
                     <button
                       type="button"
-                      onClick={() => setVerificationCode(activePreviewCode)}
+                      onClick={() => setVerificationCode(activePreviewCode || localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`) || '')}
                       className="ml-1 text-[10px] text-emerald-700 underline font-bold hover:text-emerald-900 cursor-pointer"
                     >
                       [Auto-fill]
                     </button>
                   </div>
                 )}
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleDirectConfirmFromModal()}
+                    className="text-[11px] text-emerald-700 hover:text-emerald-900 underline font-bold cursor-pointer"
+                  >
+                    ⚡ [One-Click Instant Confirmation]
+                  </button>
+                </div>
               </div>
 
               {/* Token verification form */}

@@ -28,13 +28,33 @@ export const SupabaseEmailModal: React.FC<SupabaseEmailModalProps> = ({
     return list.length > 0 ? list[0] : null;
   });
 
+  // Re-sync emails every time modal is opened or recipientEmail changes
+  React.useEffect(() => {
+    if (isOpen) {
+      const clean = recipientEmail.trim().toLowerCase();
+      const allStored = getStoredEmails();
+      const list = allStored.filter(
+        m => m.recipient.toLowerCase() === clean
+      );
+      // If list is empty, also include any recent confirm_signup emails
+      const finalEmails = list.length > 0 ? list : allStored.slice(0, 3);
+      setEmails(finalEmails);
+      if (finalEmails.length > 0) {
+        setSelectedEmail(finalEmails[0]);
+      }
+    }
+  }, [isOpen, recipientEmail]);
+
   const refreshEmails = () => {
-    const list = getStoredEmails().filter(
-      m => m.recipient.toLowerCase() === recipientEmail.trim().toLowerCase()
+    const clean = recipientEmail.trim().toLowerCase();
+    const allStored = getStoredEmails();
+    const list = allStored.filter(
+      m => m.recipient.toLowerCase() === clean
     );
-    setEmails(list);
-    if (!selectedEmail && list.length > 0) {
-      setSelectedEmail(list[0]);
+    const finalEmails = list.length > 0 ? list : allStored.slice(0, 3);
+    setEmails(finalEmails);
+    if (finalEmails.length > 0) {
+      setSelectedEmail(finalEmails[0]);
     }
   };
 
