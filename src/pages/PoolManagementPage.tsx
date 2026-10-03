@@ -478,7 +478,7 @@ export const PoolManagementPage: React.FC<PoolManagementPageProps> = ({ navigate
               <div className="space-y-2">
                 <h5 className="font-mono text-neutral-200 uppercase font-bold text-[11px]">Contacts</h5>
                 <p>Telegram: <a href={telegramUrl} target="_blank" rel="noopener noreferrer" className="text-[#d4af37] underline">@XTECHNG</a></p>
-                <p>Email: <a href="mailto:Mickybonny9@gmail.com" className="text-neutral-300 underline">Mickybonny9@gmail.com</a></p>
+                <p>Email: <a href="mailto:support@ea-algo.community" className="text-neutral-300 underline">support@ea-algo.community</a></p>
                 <p>Phone: <a href="tel:+255610366248" className="text-neutral-300">+255 610 366 248</a></p>
               </div>
 

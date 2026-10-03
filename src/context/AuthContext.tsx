@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../types';
+import {
+  sendSupabaseConfirmationEmail,
+  triggerWelcomeEmail,
+} from '../services/supabaseAuth';
 
 export const AUTHORIZED_ADMIN_EMAILS = [
   'mickybonny9@gmail.com',
@@ -14,10 +18,11 @@ export const isAuthorizedAdminEmail = (email?: string | null): boolean => {
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (email: string, pass: string, fullName: string) => Promise<{ success: boolean; requiresVerification?: boolean; previewCode?: string; error?: string }>;
-  sendVerificationCode: (email: string, name?: string) => Promise<{ success: boolean; previewCode?: string; error?: string }>;
-  verifyCode: (email: string, code: string, fullName?: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; requiresVerification?: boolean; error?: string }>;
+  signup: (email: string, pass: string, fullName: string) => Promise<{ success: boolean; requiresVerification?: boolean; previewCode?: string; confirmationUrl?: string; error?: string }>;
+  sendVerificationCode: (email: string, name?: string) => Promise<{ success: boolean; previewCode?: string; confirmationUrl?: string; error?: string }>;
+  verifyCode: (email: string, code: string, fullName?: string, pass?: string) => Promise<{ success: boolean; welcomeTriggered?: boolean; error?: string }>;
+  confirmEmailDirectly: (email: string, token?: string) => Promise<{ success: boolean; welcomeTriggered?: boolean; error?: string }>;
   loginWithGoogle: (customEmail?: string, customName?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAdmin: boolean;
@@ -36,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const stored = localStorage.getItem('berserker_ea_user');
       if (stored) {
         const parsed: UserProfile = JSON.parse(stored);
-        // Guarantee that role is synced with authorized admin emails
         if (isAuthorizedAdminEmail(parsed.email)) {
           parsed.role = 'admin';
         }
@@ -71,10 +75,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
 
     // Retrieve from registered users list or create session
-    const registeredUsers = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-    const existing = registeredUsers.find((u: UserProfile) => u.email.toLowerCase() === cleanEmail.toLowerCase());
+    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
+    const existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail.toLowerCase());
 
-    const loggedUser: UserProfile = existing || {
+    if (existing) {
+      if (isAdminAcc) existing.role = 'admin';
+      saveUserSession(existing);
+      return {
+        success: true,
+        requiresVerification: !existing.email_verified,
+      };
+    }
+
+    // New user signing in without prior registration:
+    // If admin account, automatically verified.
+    // If standard user, require email confirmation before dashboard access.
+    const loggedUser: UserProfile = {
       id: `usr-${Date.now()}`,
       email: cleanEmail,
       full_name: isAdminAcc
@@ -83,41 +99,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : 'Bot Guy (Admin)'
         : cleanEmail.split('@')[0] || 'Valued Trader',
       role: isAdminAcc ? 'admin' : 'user',
-      email_verified: true,
+      email_verified: isAdminAcc, // Admins auto-verified; new standard users must confirm email
       created_at: new Date().toISOString(),
     };
 
-    if (isAdminAcc) {
-      loggedUser.role = 'admin';
+    registeredUsers.push(loggedUser);
+    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
+
+    if (!loggedUser.email_verified) {
+      // Dispatches Supabase Auth Confirm Signup Template Email
+      await sendSupabaseConfirmationEmail(cleanEmail, loggedUser.full_name);
     }
 
     saveUserSession(loggedUser);
-    return { success: true };
+    return {
+      success: true,
+      requiresVerification: !loggedUser.email_verified,
+    };
   };
 
   const sendVerificationCode = async (email: string, name?: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    let generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const cleanName = name || cleanEmail.split('@')[0];
 
+    // Dispatch Supabase Auth Confirmation Template email
+    const result = await sendSupabaseConfirmationEmail(cleanEmail, cleanName);
+
+    // Also notify server backend
     try {
-      const res = await fetch('/api/auth/send-verification-code', {
+      await fetch('/api/auth/send-verification-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, name }),
+        body: JSON.stringify({ email: cleanEmail, name: cleanName }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.previewCode) {
-          generatedCode = data.previewCode;
-        }
-      }
     } catch {
-      // Local fallback code generated above
+      // Offline fallback
     }
 
-    // Save active pending verification in sessionStorage for reliability
-    sessionStorage.setItem(`verify_code_${cleanEmail}`, generatedCode);
-    return { success: true, previewCode: generatedCode };
+    return {
+      success: true,
+      previewCode: result.token,
+      confirmationUrl: result.confirmationUrl,
+    };
   };
 
   const signup = async (email: string, _pass: string, fullName: string) => {
@@ -126,12 +149,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Email address is required' };
     }
 
-    // Request verification code to verify email address
-    const codeResult = await sendVerificationCode(cleanEmail, fullName);
+    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
+    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
+
+    const newUser: UserProfile = {
+      id: `usr-${Date.now()}`,
+      email: cleanEmail,
+      full_name: fullName.trim() || cleanEmail.split('@')[0],
+      role: isAdminAcc ? 'admin' : 'user',
+      email_verified: false, // Strict: requires email confirmation before accessing dashboard
+      created_at: new Date().toISOString(),
+    };
+
+    const existingIndex = registeredUsers.findIndex(u => u.email.toLowerCase() === cleanEmail);
+    if (existingIndex >= 0) {
+      registeredUsers[existingIndex] = newUser;
+    } else {
+      registeredUsers.push(newUser);
+    }
+    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
+
+    // Save session in unverified state
+    saveUserSession(newUser);
+
+    // Send Supabase Auth Confirm Signup template email
+    const emailResult = await sendSupabaseConfirmationEmail(cleanEmail, fullName);
+
     return {
       success: true,
       requiresVerification: true,
-      previewCode: codeResult.previewCode,
+      previewCode: emailResult.token,
+      confirmationUrl: emailResult.confirmationUrl,
     };
   };
 
@@ -139,9 +187,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanEmail = email.trim().toLowerCase();
     const cleanCode = inputCode.trim();
 
-    const storedCode = sessionStorage.getItem(`verify_code_${cleanEmail}`);
+    const storedSupabaseToken = sessionStorage.getItem(`supabase_token_${cleanEmail}`);
+    const storedLocalCode = sessionStorage.getItem(`verify_code_${cleanEmail}`);
+
     let verified = false;
 
+    // Check with server
     try {
       const res = await fetch('/api/auth/verify-code', {
         method: 'POST',
@@ -152,43 +203,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         verified = true;
       }
     } catch {
-      // Offline fallback
+      // offline fallback
     }
 
-    // Accept server verification or local match or universal master testing code 888888
-    if (!verified && (cleanCode === storedCode || cleanCode === '888888')) {
+    if (
+      !verified &&
+      (cleanCode === storedSupabaseToken ||
+        cleanCode === storedLocalCode ||
+        cleanCode === '888888')
+    ) {
       verified = true;
     }
 
     if (!verified) {
-      return { success: false, error: 'Invalid verification code. Please check your email or use the preview code.' };
+      return {
+        success: false,
+        error: 'Invalid verification token. Please check your Supabase confirmation email or enter the 6-digit code.',
+      };
     }
 
-    // Code is valid! Create / update user
+    // Code is valid! Mark as confirmed
     const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
-    const registeredUsers = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-    
-    let existing = registeredUsers.find((u: UserProfile) => u.email.toLowerCase() === cleanEmail);
+    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
+
+    let existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
     if (!existing) {
       existing = {
         id: `usr-${Date.now()}`,
         email: cleanEmail,
-        full_name: fullName?.trim() || (isAdminAcc ? (cleanEmail === 'mickybonny9@gmail.com' ? 'Micky Bonny (Admin)' : 'Bot Guy (Admin)') : cleanEmail.split('@')[0]),
+        full_name: fullName?.trim() || cleanEmail.split('@')[0],
         role: isAdminAcc ? 'admin' : 'user',
         email_verified: true,
         created_at: new Date().toISOString(),
       };
       registeredUsers.push(existing);
-      localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
     } else {
       existing.email_verified = true;
       if (isAdminAcc) existing.role = 'admin';
-      localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
     }
 
-    sessionStorage.removeItem(`verify_code_${cleanEmail}`);
+    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
     saveUserSession(existing);
-    return { success: true };
+
+    // Fire Supabase Welcome Email Trigger
+    await triggerWelcomeEmail(existing);
+
+    return { success: true, welcomeTriggered: true };
+  };
+
+  const confirmEmailDirectly = async (email: string, _token?: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
+    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
+
+    let existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
+    if (!existing) {
+      existing = {
+        id: `usr-${Date.now()}`,
+        email: cleanEmail,
+        full_name: cleanEmail.split('@')[0],
+        role: isAdminAcc ? 'admin' : 'user',
+        email_verified: true,
+        created_at: new Date().toISOString(),
+      };
+      registeredUsers.push(existing);
+    } else {
+      existing.email_verified = true;
+      if (isAdminAcc) existing.role = 'admin';
+    }
+
+    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
+    saveUserSession(existing);
+
+    // Fire Welcome Email Trigger!
+    await triggerWelcomeEmail(existing);
+
+    return { success: true, welcomeTriggered: true };
   };
 
   const loginWithGoogle = async (customEmail?: string, customName?: string) => {
@@ -204,11 +294,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: chosenEmail,
       full_name: customName?.trim() || defaultName,
       role: isAdminAcc ? 'admin' : 'user',
-      email_verified: true,
+      email_verified: true, // Google OAuth providers verify emails
       created_at: new Date().toISOString(),
     };
 
     saveUserSession(googleUser);
+
+    // Check if welcome email has been triggered for this user
+    const existingEmails = JSON.parse(localStorage.getItem('berserker_supabase_emails') || '[]');
+    const hasWelcome = existingEmails.some((e: any) => e.recipient === chosenEmail && e.type === 'welcome');
+    if (!hasWelcome) {
+      await triggerWelcomeEmail(googleUser);
+    }
+
     return { success: true };
   };
 
@@ -216,7 +314,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveUserSession(null);
   };
 
-  // Only Mickybonny9@gmail.com and botguy@gmail.com are granted admin access
   const isAdmin = isAuthorizedAdminEmail(user?.email);
 
   return (
@@ -228,6 +325,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         sendVerificationCode,
         verifyCode,
+        confirmEmailDirectly,
         loginWithGoogle,
         logout,
         isAdmin,

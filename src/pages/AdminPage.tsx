@@ -317,15 +317,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             Automatic access to the Berserker EA Administration Terminal is strictly reserved for authorized administrator accounts.
           </p>
 
-          <div className="rounded-2xl border border-[#d4af37]/40 bg-[#faf4e6] p-4 text-xs font-mono space-y-2 text-left">
-            <div className="flex items-center space-x-2 text-[#855f0b] font-bold">
+          <div className="rounded-2xl border border-neutral-200 bg-[#faf8f5] p-4 text-xs font-mono space-y-1.5 text-center">
+            <div className="flex items-center justify-center space-x-2 text-neutral-800 font-bold">
               <Shield className="h-4 w-4 text-[#aa851d]" />
-              <span>Designated Admin Accounts:</span>
+              <span>Restricted Internal Gateway</span>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-neutral-800 font-semibold pl-2">
-              <li>Mickybonny9@gmail.com</li>
-              <li>botguy@gmail.com</li>
-            </ul>
+            <p className="text-neutral-600 text-[11px]">
+              Administrative access is reserved for verified system operators with active security clearance.
+            </p>
           </div>
 
           {user && (
@@ -375,7 +374,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 </span>
               </div>
               <p className="text-xs font-mono text-neutral-500 font-semibold">
-                Authorized Operators: <span className="text-[#855f0b] font-bold">Mickybonny9@gmail.com</span> &amp; <span className="text-[#855f0b] font-bold">botguy@gmail.com</span> · EA ALGO COMMUNITY
+                Master Terminal: <span className="text-[#855f0b] font-bold">System Administration Console</span> · EA ALGO COMMUNITY
               </p>
             </div>
           </div>

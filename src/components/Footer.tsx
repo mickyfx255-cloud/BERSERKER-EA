@@ -69,11 +69,11 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
 
               {/* Email */}
               <a
-                href="mailto:Mickybonny9@gmail.com?subject=Inquiry%20-%20BERSERKER%20EA%20ALGO%20COMMUNITY"
+                href="mailto:support@ea-algo.community?subject=Inquiry%20-%20BERSERKER%20EA%20ALGO%20COMMUNITY"
                 className="flex items-center space-x-3 rounded-xl border border-neutral-800 bg-[#18191e] px-4 py-2.5 text-xs font-medium text-neutral-300 hover:border-[#d4af37] hover:text-white transition-all"
               >
                 <Mail className="h-4 w-4 shrink-0 text-[#ffd700]" />
-                <span>Email: Mickybonny9@gmail.com</span>
+                <span>Email: support@ea-algo.community</span>
               </a>
 
               {/* Telegram */}

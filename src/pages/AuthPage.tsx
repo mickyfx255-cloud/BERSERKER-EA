@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, AUTHORIZED_ADMIN_EMAILS } from '../context/AuthContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { SupabaseEmailModal } from '../components/SupabaseEmailModal';
 import {
   Mail,
   Lock,
@@ -15,6 +16,7 @@ import {
   Sparkles,
   Coins,
   X,
+  Inbox,
   ExternalLink,
 } from 'lucide-react';
 
@@ -23,7 +25,15 @@ interface AuthPageProps {
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
-  const { user, login, signup, sendVerificationCode, verifyCode, loginWithGoogle } = useAuth();
+  const {
+    user,
+    login,
+    signup,
+    sendVerificationCode,
+    verifyCode,
+    confirmEmailDirectly,
+    loginWithGoogle,
+  } = useAuth();
   
   // Tabs: 'signin' | 'signup'
   const [isSignUp, setIsSignUp] = useState(false);
@@ -47,10 +57,41 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
   const [activePreviewCode, setActivePreviewCode] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Supabase Mailbox Modal state
+  const [mailboxOpen, setMailboxOpen] = useState(false);
+
   // Google Modal
   const [googleModalOpen, setGoogleModalOpen] = useState(false);
   const [customGoogleEmail, setCustomGoogleEmail] = useState('');
   const [customGoogleName, setCustomGoogleName] = useState('');
+
+  // Handle URL confirmation link from Supabase Auth email template
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const confirmationToken = params.get('confirmation_token');
+      const paramEmail = params.get('email');
+      if (confirmationToken && paramEmail) {
+        setLoading(true);
+        confirmEmailDirectly(paramEmail, confirmationToken).then(res => {
+          if (res.success) {
+            setSuccessMsg('Email confirmed via Supabase Auth link! Welcome email dispatched. Redirecting...');
+            setTimeout(() => {
+              if (AUTHORIZED_ADMIN_EMAILS.includes(paramEmail.toLowerCase())) {
+                navigate('/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            }, 800);
+          } else {
+            setError(res.error || 'Failed to verify confirmation link.');
+          }
+        }).finally(() => setLoading(false));
+      }
+    } catch {
+      // ignore
+    }
+  }, [confirmEmailDirectly, navigate]);
 
   // Redirect if already logged in with verified email
   useEffect(() => {
@@ -92,7 +133,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
           return;
         }
 
-        // Send verification code
+        // Send Supabase Auth Confirm Signup template email
         const res = await signup(email, password, fullName);
         if (res.success && res.requiresVerification) {
           setPendingEmail(email.trim());
@@ -101,7 +142,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
           setActivePreviewCode(res.previewCode || null);
           setResendCooldown(60);
           setStep('verify');
-          setSuccessMsg(`A 6-digit verification code was sent to ${email.trim()}`);
+          setSuccessMsg(`Confirmation email dispatched to ${email.trim()}! Check your Supabase mailbox below.`);
+          // Automatically open the Supabase Email Confirmation Modal so user sees the email immediately!
+          setMailboxOpen(true);
         } else {
           setError(res.error || 'Failed to initiate verification');
         }
@@ -110,7 +153,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
         const result = await login(email, password);
         if (result.success) {
           const cleanEmail = email.trim().toLowerCase();
-          if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
+          if (result.requiresVerification) {
+            // Unconfirmed account attempting to log in
+            setPendingEmail(cleanEmail);
+            setStep('verify');
+            setError('Email confirmation required before dashboard access. Check your inbox for the Supabase confirmation email.');
+          } else if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
@@ -133,7 +181,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     setLoading(true);
 
     if (!verificationCode.trim()) {
-      setError('Please enter the 6-digit verification code.');
+      setError('Please enter the 6-digit confirmation token.');
       setLoading(false);
       return;
     }
@@ -141,19 +189,44 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     try {
       const res = await verifyCode(pendingEmail, verificationCode, pendingName, pendingPass);
       if (res.success) {
-        setSuccessMsg('Account verified successfully! Redirecting...');
+        setSuccessMsg('Account confirmed! Welcome email with MT5 setup guide triggered. Redirecting...');
         setTimeout(() => {
           if (AUTHORIZED_ADMIN_EMAILS.includes(pendingEmail.toLowerCase())) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
           }
-        }, 600);
+        }, 750);
       } else {
-        setError(res.error || 'Invalid verification code');
+        setError(res.error || 'Invalid verification token');
       }
     } catch (err: any) {
       setError(err.message || 'Verification error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Direct confirmation from email modal
+  const handleDirectConfirmFromModal = async (token: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await confirmEmailDirectly(pendingEmail, token);
+      if (res.success) {
+        setSuccessMsg('Email verified! Welcome email triggered. Redirecting...');
+        setTimeout(() => {
+          if (AUTHORIZED_ADMIN_EMAILS.includes(pendingEmail.toLowerCase())) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 750);
+      } else {
+        setError(res.error || 'Confirmation failed');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error confirming email');
     } finally {
       setLoading(false);
     }
@@ -169,12 +242,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
       if (res.success) {
         setActivePreviewCode(res.previewCode || null);
         setResendCooldown(60);
-        setSuccessMsg(`New 6-digit verification code sent to ${pendingEmail}`);
+        setSuccessMsg(`New Supabase confirmation email sent to ${pendingEmail}`);
       } else {
-        setError(res.error || 'Failed to resend code');
+        setError(res.error || 'Failed to resend email');
       }
     } catch (err: any) {
-      setError(err.message || 'Could not resend code');
+      setError(err.message || 'Could not resend email');
     } finally {
       setLoading(false);
     }
@@ -222,27 +295,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
               )}
             </div>
 
+            <div className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-[#faf4e6] border border-[#d4af37]/40 text-[#855f0b] text-[10px] font-mono font-bold mb-2">
+              <Sparkles className="h-3 w-3 text-[#aa851d]" />
+              <span>Supabase Auth Template Engine</span>
+            </div>
+
             <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-[#1a1a1a]">
               {step === 'verify'
-                ? 'Verify Email Code'
+                ? 'Confirm Supabase Email'
                 : isSignUp
                 ? 'Create Trader Account'
                 : 'Sign In to Portal'}
             </h1>
-            <p className="mt-1.5 text-xs font-mono text-neutral-500 font-semibold uppercase tracking-wider">
+            <p className="mt-1 text-xs font-mono text-neutral-500 font-semibold uppercase tracking-wider">
               Berserker EA · EA ALGO COMMUNITY
             </p>
-
-            {/* Admin Designation Notice */}
-            <div className="mt-4 rounded-2xl border border-[#d4af37]/40 bg-[#faf4e6] p-3 text-[11px] font-mono text-left space-y-1">
-              <div className="flex items-center space-x-1.5 text-[#855f0b] font-bold">
-                <Shield className="h-3.5 w-3.5 text-[#aa851d]" />
-                <span>Automatic Admin Access Rules:</span>
-              </div>
-              <p className="text-neutral-700 leading-snug">
-                Only <strong className="text-black">Mickybonny9@gmail.com</strong> and <strong className="text-black">botguy@gmail.com</strong> are automatically authorized for the Master Admin Terminal.
-              </p>
-            </div>
           </div>
 
           {/* Feedback alerts */}
@@ -260,17 +327,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
             </div>
           )}
 
-          {/* STEP 1: VERIFICATION CODE STEP (When creating account) */}
+          {/* STEP 1: SUPABASE EMAIL CONFIRMATION SCREEN */}
           {step === 'verify' ? (
             <div className="space-y-5 font-mono text-xs relative z-10">
               <div className="rounded-2xl border border-[#d4af37]/30 bg-[#fbf9f5] p-4 text-center space-y-2">
-                <span className="text-[11px] text-neutral-500 block">Verification code sent to</span>
+                <span className="text-[11px] text-neutral-500 block">
+                  Supabase Auth confirmation sent to:
+                </span>
                 <span className="text-sm font-bold text-[#1a1a1a] block font-mono">{pendingEmail}</span>
 
-                {/* Instant Preview Code auto-filler pill */}
+                {/* Instant Preview Token auto-filler pill */}
                 {activePreviewCode && (
                   <div className="mt-3 inline-flex items-center space-x-2 clay-pill px-3.5 py-1.5 text-[11px]">
-                    <span className="text-neutral-500">Preview OTP:</span>
+                    <span className="text-neutral-500">Supabase Token:</span>
                     <strong className="text-[#aa851d] font-mono tracking-widest text-xs">
                       {activePreviewCode}
                     </strong>
@@ -285,10 +354,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 )}
               </div>
 
+              {/* Token verification form */}
               <form onSubmit={handleVerifyCodeSubmit} className="space-y-4">
                 <div>
                   <label className="block text-neutral-700 mb-1.5 font-semibold text-center">
-                    Enter 6-Digit Code
+                    Enter 6-Digit Supabase Token ({"{{ .Token }}"})
                   </label>
                   <input
                     type="text"
@@ -300,7 +370,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                     className="clay-input w-full py-3.5 text-center text-xl font-bold tracking-[0.45em] text-[#1a1a1a] focus:outline-none"
                   />
                   <p className="mt-1.5 text-[10px] text-center text-neutral-400">
-                    Enter the digits sent to your email or click [Auto-fill] above
+                    Check your Supabase mailbox or use the token above
                   </p>
                 </div>
 
@@ -310,9 +380,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                   className="clay-btn-gold w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer shadow-lg"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  <span>{loading ? 'Verifying...' : 'Verify & Activate Account'}</span>
+                  <span>{loading ? 'Verifying...' : 'Confirm Account & Trigger Welcome Email'}</span>
                 </button>
               </form>
+
+              {/* Supabase Template Mailbox launcher */}
+              <button
+                type="button"
+                onClick={() => setMailboxOpen(true)}
+                className="clay-google-btn w-full py-3 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <Inbox className="h-4 w-4 text-[#aa851d]" />
+                <span>Open Supabase Mailbox (Read &amp; Click Template)</span>
+              </button>
 
               {/* Resend & Back actions */}
               <div className="flex items-center justify-between pt-2 text-[11px]">
@@ -326,7 +406,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>
-                    {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
+                    {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : 'Resend Email'}
                   </span>
                 </button>
 
@@ -339,12 +419,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                   }}
                   className="text-neutral-500 hover:text-black hover:underline cursor-pointer"
                 >
-                  ← Edit Email
+                  ← Back to Sign In
                 </button>
               </div>
             </div>
           ) : (
-            /* STEP 0: MAIN AUTH FORM (Claymorphic Sign In & Create Account) */
+            /* STEP 0: MAIN AUTH FORM */
             <div className="relative z-10">
               
               {/* Claymorphic 3D Tabs */}
@@ -399,28 +479,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 )}
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="mb-1.5">
                     <label className="block text-neutral-700 font-semibold">
                       Email Address
                     </label>
-                    {/* Quick Admin fill button for convenience */}
-                    <div className="flex items-center space-x-1.5 text-[10px]">
-                      <button
-                        type="button"
-                        onClick={() => setEmail('Mickybonny9@gmail.com')}
-                        className="text-[#aa851d] hover:underline cursor-pointer"
-                      >
-                        [Admin 1]
-                      </button>
-                      <span className="text-neutral-300">·</span>
-                      <button
-                        type="button"
-                        onClick={() => setEmail('botguy@gmail.com')}
-                        className="text-[#aa851d] hover:underline cursor-pointer"
-                      >
-                        [Admin 2]
-                      </button>
-                    </div>
                   </div>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
@@ -461,7 +523,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                     {loading
                       ? 'Processing...'
                       : isSignUp
-                      ? 'Create Account & Send Verification Code'
+                      ? 'Create Account & Send Supabase Verification'
                       : 'Sign In to Portal'}
                   </span>
                   <ArrowRight className="h-4 w-4" />
@@ -511,7 +573,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
         </div>
       </main>
 
-      {/* ================= CLAYMORPHIC GOOGLE ACCOUNT SELECTOR MODAL ================= */}
+      {/* ================= GOOGLE SELECTOR MODAL ================= */}
       {googleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="clay-card w-full max-w-md p-6 sm:p-8 space-y-5 relative">
@@ -546,58 +608,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
             </div>
 
             <p className="text-xs text-neutral-600">
-              Choose an authorized administrative Google profile or enter your personal Google email:
+              Sign in with your Google account to access your trading dashboard:
             </p>
 
             {/* Quick Profile Cards */}
             <div className="space-y-2.5 font-mono text-xs">
-              
-              {/* Admin Account 1: Mickybonny9@gmail.com */}
-              <button
-                type="button"
-                onClick={() => handleGoogleSelect('Mickybonny9@gmail.com', 'Micky Bonny')}
-                className="w-full text-left p-3.5 rounded-2xl border-2 border-[#d4af37] bg-[#faf4e6] hover:bg-[#f6ebd4] transition-all flex items-center justify-between cursor-pointer shadow-xs"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#aa851d] text-white font-bold text-sm">
-                    M
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-black text-xs">Micky Bonny</span>
-                      <span className="rounded bg-black px-1.5 py-0.5 text-[9px] font-bold text-[#ffd700]">
-                        MASTER ADMIN
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-neutral-600">Mickybonny9@gmail.com</span>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-[#aa851d]" />
-              </button>
-
-              {/* Admin Account 2: botguy@gmail.com */}
-              <button
-                type="button"
-                onClick={() => handleGoogleSelect('botguy@gmail.com', 'Bot Guy')}
-                className="w-full text-left p-3.5 rounded-2xl border-2 border-[#d4af37] bg-[#faf4e6] hover:bg-[#f6ebd4] transition-all flex items-center justify-between cursor-pointer shadow-xs"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#18191e] text-[#ffd700] font-bold text-sm border border-[#d4af37]">
-                    B
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-black text-xs">Bot Guy</span>
-                      <span className="rounded bg-black px-1.5 py-0.5 text-[9px] font-bold text-[#ffd700]">
-                        ADMIN
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-neutral-600">botguy@gmail.com</span>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-[#aa851d]" />
-              </button>
-
               {/* Standard Trader Account */}
               <button
                 type="button"
@@ -606,22 +621,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
               >
                 <div className="flex items-center space-x-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 font-bold text-sm">
-                    A
+                    G
                   </div>
                   <div>
                     <span className="font-bold text-black text-xs block">Alex Trader</span>
-                    <span className="text-[11px] text-neutral-600">trader.alex@gmail.com (Trader)</span>
+                    <span className="text-[11px] text-neutral-600">trader.alex@gmail.com (Instant Google Profile)</span>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-neutral-400" />
               </button>
-
             </div>
 
             {/* Custom Google Account Input */}
             <div className="border-t border-neutral-200 pt-3">
               <span className="text-[11px] text-neutral-500 font-mono block mb-2 font-semibold">
-                Or Use Another Google Account:
+                Or Enter Your Google Email Address:
               </span>
               <div className="space-y-2">
                 <input
@@ -649,6 +663,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
 
           </div>
         </div>
+      )}
+
+      {/* Supabase Email Viewer Modal */}
+      {pendingEmail && (
+        <SupabaseEmailModal
+          recipientEmail={pendingEmail}
+          isOpen={mailboxOpen}
+          onClose={() => setMailboxOpen(false)}
+          onConfirmViaEmail={handleDirectConfirmFromModal}
+        />
       )}
 
       <Footer navigate={navigate} />

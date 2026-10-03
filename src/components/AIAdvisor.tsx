@@ -74,7 +74,7 @@ export const AIAdvisor: React.FC = () => {
       const errMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'model',
-        text: '⚠️ **EA ALGO Advisor:** Could not reach the intelligence server. For direct inquiries, licensing, and MT5 setup, contact our team immediately on WhatsApp: **+255 610 366 248** or email **Mickybonny9@gmail.com**.\n\n*Risk Warning: Trading forex and CFDs carries a high risk of capital loss.*',
+        text: '⚠️ **EA ALGO Advisor:** Could not reach the intelligence server. For direct inquiries, licensing, and MT5 setup, contact our team immediately on WhatsApp: **+255 610 366 248** or email **support@ea-algo.community**.\n\n*Risk Warning: Trading forex and CFDs carries a high risk of capital loss.*',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errMsg]);

@@ -80,7 +80,7 @@ export const MentorshipSection: React.FC = () => {
                 Inquire via WhatsApp
               </a>
               <a
-                href="mailto:Mickybonny9@gmail.com?subject=Mentorship%20Application%20-%20EA%20ALGO%20COMMUNITY"
+                href="mailto:support@ea-algo.community?subject=Mentorship%20Application%20-%20EA%20ALGO%20COMMUNITY"
                 className="flex-1 rounded-xl border border-neutral-300 bg-white p-3.5 text-center text-xs font-semibold text-neutral-800 hover:border-[#d4af37] transition-colors shadow-sm"
               >
                 Email Application

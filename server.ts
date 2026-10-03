@@ -378,7 +378,7 @@ app.post('/api/advisor/chat', async (req: Request, res: Response) => {
 
     if (!apiKey) {
       res.json({
-        reply: "Welcome to EA ALGO COMMUNITY! Our algorithmic trading systems are optimized for MetaTrader 5 with strict risk parameters. Note: For live deployment, licensing, and VIP pool account access, connect directly with our support team on WhatsApp at +255 610 366 248 or email Mickybonny9@gmail.com.\n\n*Risk Warning: Trading forex and CFDs carries a high level of risk to your capital.*"
+        reply: "Welcome to EA ALGO COMMUNITY! Our algorithmic trading systems are optimized for MetaTrader 5 with strict risk parameters. Note: For live deployment, licensing, and VIP pool account access, connect directly with our support team on WhatsApp at +255 610 366 248 or email support@ea-algo.community.\n\n*Risk Warning: Trading forex and CFDs carries a high level of risk to your capital.*"
       });
       return;
     }
@@ -392,7 +392,7 @@ CRITICAL RULES:
 3. NEVER promise profits or guarantee financial returns under any circumstances.
 4. ALWAYS conclude with a transparent risk reminder:
    "⚠️ *Risk Disclosure: Trading forex, indices, and CFDs involves substantial risk of loss and is not suitable for all investors.*"
-5. For purchasing Smart Scalper EA, acquiring license keys, VIP mentorship, or joining Pool Account Management (@XTECHNG), direct the user directly to WhatsApp (+255 610 366 248) or email (Mickybonny9@gmail.com).`;
+5. For purchasing Smart Scalper EA, acquiring license keys, VIP mentorship, or joining Pool Account Management (@XTECHNG), direct the user directly to WhatsApp (+255 610 366 248) or email (support@ea-algo.community).`;
 
     // Build chat contents
     const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
