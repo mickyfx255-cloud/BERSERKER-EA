@@ -7,22 +7,20 @@ import { ProductSection } from '../components/ProductSection';
 import { HowItWorks } from '../components/HowItWorks';
 import { PlatformSection } from '../components/PlatformSection';
 import { AIAdvisor } from '../components/AIAdvisor';
-import { PoolTeaserSection } from '../components/PoolTeaserSection';
 import { MentorshipSection } from '../components/MentorshipSection';
 import { Footer } from '../components/Footer';
 import { FadeInOnScroll } from '../components/FadeInOnScroll';
 
-import { DEFAULT_PRODUCT } from '../data/defaultProduct';
+import { DEFAULT_PRODUCTS } from '../data/defaultProduct';
 
 interface HomePageProps {
   navigate: (path: string) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
-  const [product, setProduct] = useState<Product>(DEFAULT_PRODUCT);
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
-  useEffect(() => {
-    // Fetch products from server (active only)
+  const fetchProducts = () => {
     fetch('/api/products')
       .then(res => {
         if (!res.ok) throw new Error('API unavailable');
@@ -30,13 +28,24 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       })
       .then((data: Product[]) => {
         if (data && data.length > 0) {
-          // Storefront shows only the single product (Smart Scalper EA)
-          setProduct(data[0]);
+          setProducts(data);
         }
       })
-      .catch(() => {
-        // Fallback to default product already loaded
-      });
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchProducts();
+
+    const handleUpdate = () => fetchProducts();
+    window.addEventListener('xtech_products_updated', handleUpdate);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'xtech_products_updated') fetchProducts();
+    });
+
+    return () => {
+      window.removeEventListener('xtech_products_updated', handleUpdate);
+    };
   }, []);
 
   const scrollTo = (id: string) => {
@@ -60,17 +69,12 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
         />
       </FadeInOnScroll>
 
-      {/* The Single Product Storefront Section */}
+      {/* Dual Flagship Products Storefront Section */}
       <FadeInOnScroll>
         <ProductSection
-          product={product}
-          onViewProductPage={() => navigate('/product')}
+          products={products}
+          onViewProductPage={(pId) => navigate(pId ? `/product?id=${pId}` : '/product')}
         />
-      </FadeInOnScroll>
-
-      {/* Pool Account Management Campaign Feature Banner */}
-      <FadeInOnScroll>
-        <PoolTeaserSection onNavigateToPool={() => navigate('/pool-management')} />
       </FadeInOnScroll>
 
       {/* How it works */}

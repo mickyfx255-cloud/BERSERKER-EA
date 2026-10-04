@@ -1,202 +1,224 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Product } from '../types';
-import boxMockup from '../assets/images/berserker_gold_box_1791008300231.jpg';
-import { CheckCircle2, ShieldAlert, MessageCircle, ArrowRight, Sparkles, Layers, Sliders, Cpu, Coins } from 'lucide-react';
+import berserkerOfficialBox from '../assets/images/berserker_scalp_box_official_1791111894715.jpg';
+import berserkerBox from '../assets/images/berserker_scalp_box_1791064523648.jpg';
+import snxperbotBox from '../assets/images/snxperbot_adaptive_box_1791064534614.jpg';
+import { CheckCircle2, ShieldAlert, MessageCircle, ArrowRight, Sparkles, Layers, Sliders, Cpu, Zap, Shield, Target, Crosshair, BarChart3, TrendingUp, Check } from 'lucide-react';
 
 interface ProductSectionProps {
-  product: Product | null;
-  onViewProductPage: () => void;
+  products: Product[];
+  onViewProductPage: (productId?: string) => void;
 }
 
-export const ProductSection: React.FC<ProductSectionProps> = ({ product, onViewProductPage }) => {
-  const whatsappUrl = `https://wa.me/255610366248?text=${encodeURIComponent(
-    'Hello EA ALGO COMMUNITY, I am interested in Smart Scalper EA (MT5). Please provide the current pricing and activation details.'
-  )}`;
+export const ProductSection: React.FC<ProductSectionProps> = ({ products, onViewProductPage }) => {
+  const [selectedId, setSelectedId] = useState<string>(products[0]?.id || 'prod-berserker-scalp-ai');
 
-  const features = [
-    'Sub-millisecond MQL5 execution algorithms',
-    'Automated dynamic Stop-Loss and Take-Profit on every single order',
-    'No grid logic · No destructive martingale doubling',
-    'Multi-symbol compatibility (XAUUSD, EURUSD, GBPUSD, NAS100)',
-    'Hedge and netting account compatibility on MT5',
-    'Full VPS optimization for 24/5 uninterruptible trade cycles',
-    'Direct MT5 WebRequest license security authentication',
-    'Lifetime updates and setup assistance by EA ALGO COMMUNITY'
-  ];
+  const activeProduct = products.find(p => p.id === selectedId) || products[0];
+
+  const whatsappBaseUrl = 'https://wa.me/255610366248';
 
   return (
-    <section id="product" className="relative py-24 bg-[#faf8f5]/85 border-t border-[#d4af37]/25 overflow-hidden">
+    <section id="product" className="relative py-24 bg-[#faf8f5]/90 border-t border-[#d4af37]/25 overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
             <div className="flex items-center space-x-3 mb-2">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#aa851d]">
-                STOREFRONT CATALOG
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#0066ff]">
+                FLAGSHIP TRADING SYSTEMS
               </span>
               <span className="text-neutral-400">/</span>
-              <span className="font-mono text-xs text-neutral-500 font-semibold">SINGLE-PRODUCT EXCLUSIVE</span>
+              <span className="font-mono text-xs text-neutral-500 font-semibold">MT4 &amp; MT5 EXPERT ADVISORS</span>
             </div>
             <h2 className="font-extrabold uppercase tracking-tight text-3xl sm:text-5xl text-[#1a1a1a]">
-              SMART SCALPER EA
+              XTECH ALGORITHMIC SUITE
             </h2>
-            <p className="mt-2 text-sm sm:text-base text-neutral-600">
-              The proprietary flagship robot from EA ALGO COMMUNITY. Only one verified system.
+            <p className="mt-2 text-sm sm:text-base text-neutral-600 max-w-2xl">
+              Two specialized institutional AI engines engineered for MetaTrader 4 and MetaTrader 5: High-Velocity Scalping &amp; Adaptive Multi-Pair Swing Execution.
             </p>
           </div>
 
-          <div className="mt-4 md:mt-0 flex items-center space-x-3">
-            <span className="rounded-md border border-[#d4af37]/60 bg-[#faf4e6] px-3 py-1 font-mono text-xs font-bold text-[#855f0b] shadow-sm">
-              Expert Advisor · MT5
-            </span>
-            <span className="rounded-md border border-neutral-300 bg-white px-3 py-1 font-mono text-xs font-bold text-neutral-700 shadow-sm">
-              01/01
-            </span>
+          {/* Product Switcher Pills */}
+          <div className="mt-6 md:mt-0 flex items-center p-1.5 rounded-2xl bg-white border border-[#d4af37]/40 shadow-xs font-mono text-xs">
+            {products.map(p => {
+              const isSelected = p.id === selectedId;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setSelectedId(p.id)}
+                  className={`px-4 py-2 rounded-xl font-bold uppercase transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#18191e] text-[#ffd700] shadow-sm'
+                      : 'text-neutral-600 hover:text-black'
+                  }`}
+                >
+                  {p.name.includes('SCALP') ? 'Berserker Scalp AI' : 'Snxperbot Adaptive'}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Product Showcase Card - Luxury Ivory White with Gold Trim */}
-        <div className="terminal-card rounded-2xl p-6 sm:p-10 border border-[#d4af37]/40 shadow-[0_12px_45px_rgba(212,175,55,0.12)] bg-white">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
-            {/* Left: 3D Product Box Image Render with Gold & Black Marble */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center">
-              <div className="relative group w-full max-w-md aspect-square rounded-2xl overflow-hidden border border-[#d4af37]/50 bg-[#16171b] shadow-lg">
-                <img
-                  src={boxMockup}
-                  alt="SMART SCALPER EA Gold Box Mockup"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {/* Overlay highlights */}
-                <div className="absolute top-4 left-4 flex items-center space-x-2 rounded bg-black/90 px-2.5 py-1 border border-[#d4af37]/50">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-                  <span className="font-mono text-[11px] text-white font-semibold">MT5 Build 4000+</span>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[11px] font-mono text-neutral-200 bg-black/90 p-2.5 rounded border border-[#d4af37]/45">
-                  <span className="text-neutral-400">AUTHENTICATION</span>
-                  <span className="text-[#ffd700] font-bold">WEBREQUEST SECURE</span>
-                </div>
-              </div>
-              <p className="mt-3 text-xs font-mono text-neutral-500 text-center">
-                Digital Delivery (.mq5 source + remote license key)
-              </p>
-            </div>
+        {/* Dual Product Showcase Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {products.map((item, idx) => {
+            const isBerserker = item.id.includes('berserker') || item.name.includes('BERSERKER');
+            const boxImage = item.image_url || (isBerserker ? berserkerOfficialBox : snxperbotBox);
+            const whatsappInquiryUrl = `${whatsappBaseUrl}?text=${encodeURIComponent(
+              `Hello XTech Algo Trading, I want to inquire about purchasing ${item.name} (${item.brand || 'MT4 & MT5'}). Please provide current license access and pricing.`
+            )}`;
 
-            {/* Right: Product Details, Checklist & Pricing */}
-            <div className="lg:col-span-7 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center space-x-2 text-xs font-mono text-[#aa851d] uppercase tracking-wider mb-2 font-bold">
-                  <Cpu className="h-3.5 w-3.5" />
-                  <span>MetaTrader 5 Algorithmic Suite</span>
-                </div>
-
-                <h3 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#1a1a1a] tracking-tight">
-                  {product?.name || 'Smart Scalper EA'}
-                </h3>
-                <p className="mt-3 text-sm text-neutral-600 leading-relaxed">
-                  {product?.description ||
-                    'Automated algorithmic trading system built exclusively for MetaTrader 5. Features proprietary dynamic micro-trend detection, sub-millisecond execution logic, and automated strict risk ceiling controls.'}
-                </p>
-
-                {/* Technical Specifications Grid */}
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-                  <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-3 shadow-sm">
-                    <span className="text-neutral-500 block text-[10px] uppercase font-bold">Min Deposit</span>
-                    <span className="font-extrabold text-[#aa851d]">${product?.min_deposit || 100}</span>
-                  </div>
-                  <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-3 shadow-sm">
-                    <span className="text-neutral-500 block text-[10px] uppercase font-bold">Timeframe</span>
-                    <span className="font-bold text-[#1a1a1a]">{product?.timeframe || 'M1 / M5'}</span>
-                  </div>
-                  <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-3 shadow-sm">
-                    <span className="text-neutral-500 block text-[10px] uppercase font-bold">Recommended</span>
-                    <span className="font-bold text-[#1a1a1a]">XAUUSD / EURUSD</span>
-                  </div>
-                  <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-3 shadow-sm">
-                    <span className="text-neutral-500 block text-[10px] uppercase font-bold">Platform</span>
-                    <span className="font-bold text-[#aa851d]">MT5 Only</span>
-                  </div>
-                </div>
-
-                {/* Features Checklist */}
-                <div className="mt-6 space-y-2.5">
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-700">
-                    System Architecture & Guarantees:
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-neutral-700 font-medium">
-                    {features.map((feat, i) => (
-                      <div key={i} className="flex items-start space-x-2">
-                        <CheckCircle2 className="h-4 w-4 text-[#aa851d] shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Price Area & Buy Action */}
-              <div className="mt-8 pt-6 border-t border-neutral-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* Price display */}
-                  <div>
-                    <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 block">
-                      Official License Price
+            return (
+              <div
+                key={item.id}
+                className={`terminal-card rounded-3xl p-6 sm:p-8 border transition-all duration-300 flex flex-col justify-between ${
+                  item.id === selectedId
+                    ? 'border-[#0066ff] bg-white shadow-[0_16px_45px_rgba(0,102,255,0.15)] ring-2 ring-[#0066ff]/30'
+                    : 'border-neutral-200 bg-white/90 hover:border-[#0066ff]/50 shadow-sm'
+                }`}
+              >
+                <div>
+                  {/* Top Brand Banner */}
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-4 mb-6">
+                    <div className="flex items-center space-x-2">
+                      <span className="h-2 w-2 rounded-full bg-[#0066ff]" />
+                      <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#0066ff]">
+                        {item.brand || 'XTech Algo Trading'}
+                      </span>
+                    </div>
+                    <span className="rounded-md border border-[#0066ff]/40 bg-[#eff6ff] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#0066ff]">
+                      MT4 &amp; MT5 · {item.version}
                     </span>
-                    {product?.price !== null && product?.price !== undefined ? (
-                      <div className="flex items-baseline space-x-2 mt-1">
-                        <span className="text-3xl sm:text-4xl font-extrabold text-[#aa851d] font-mono">
-                          ${product.price}
-                        </span>
-                        <span className="text-xs font-mono text-neutral-500 uppercase font-semibold">
-                          {product.currency || 'USD'} / Lifetime Key
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="mt-1 flex items-center space-x-2">
-                        <span className="text-2xl sm:text-3xl font-extrabold text-[#1a1a1a] font-mono tracking-tight">
-                          Price coming soon
-                        </span>
-                        <span className="rounded bg-[#faf4e6] border border-[#d4af37]/40 px-2 py-0.5 text-[10px] font-mono text-[#855f0b] font-semibold">
-                          Set by owner in admin
-                        </span>
+                  </div>
+
+                  {/* Big Transparent 3D Retail Box without restrictive dark border */}
+                  <div className="relative group w-full min-h-[360px] sm:min-h-[420px] mb-6 flex flex-col items-center justify-center p-2">
+                    {/* Ambient subtle glow */}
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="h-60 w-60 rounded-full bg-gradient-to-tr from-[#0066ff]/15 via-[#ffd700]/15 to-transparent blur-2xl" />
+                    </div>
+
+                    <img
+                      src={boxImage}
+                      alt={item.name}
+                      referrerPolicy="no-referrer"
+                      className="max-h-[380px] sm:max-h-[420px] w-auto max-w-full object-contain filter drop-shadow-[0_22px_40px_rgba(0,0,0,0.32)] transition-transform duration-500 group-hover:scale-105 select-none"
+                    />
+                    
+                    {/* Badge Overlay */}
+                    <div className="absolute top-2 left-2 flex items-center space-x-1.5 rounded-full bg-black/85 backdrop-blur-md px-3 py-1 border border-[#0066ff]/50 shadow-md">
+                      <Sparkles className="h-3 w-3 text-[#ffd700]" />
+                      <span className="font-mono text-[10px] text-white font-bold">
+                        {isBerserker ? 'High-Velocity Scalper' : 'Multi-Pair Swing Engine'}
+                      </span>
+                    </div>
+
+                    {item.badge && (
+                      <div className="mt-4 text-center text-[10px] font-mono font-bold tracking-wider text-[#ffd700] bg-black/90 py-1.5 px-3 rounded-full border border-[#d4af37]/40 shadow-sm">
+                        {item.badge}
                       </div>
                     )}
                   </div>
 
-                  {/* Buttons */}
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={onViewProductPage}
-                      className="gold-btn inline-flex items-center space-x-2 rounded-xl px-6 py-3.5 text-xs sm:text-sm font-extrabold uppercase tracking-wider cursor-pointer shadow-md"
-                    >
-                      <span>View Price & Buy</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
+                  {/* Product Title & Tagline */}
+                  <div className="space-y-2 mb-5">
+                    <h3 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#1a1a1a] tracking-tight">
+                      {item.name}
+                    </h3>
+                    <p className="font-mono text-xs font-bold text-[#aa851d] tracking-wide">
+                      {item.tagline}
+                    </p>
+                    <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed pt-1">
+                      {item.description}
+                    </p>
+                  </div>
 
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 rounded-xl border border-emerald-500 bg-emerald-50 px-4 py-3.5 text-xs sm:text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors shadow-sm"
-                    >
-                      <MessageCircle className="h-4 w-4 text-emerald-600" />
-                      <span className="hidden sm:inline">WhatsApp Inquiries</span>
-                    </a>
+                  {/* Pillars / Feature Highlights */}
+                  {item.pillars && item.pillars.length > 0 && (
+                    <div className="rounded-2xl bg-[#faf8f5] border border-neutral-200/80 p-4 mb-6 space-y-2">
+                      <span className="text-[10px] font-mono uppercase font-bold text-neutral-500 tracking-wider block">
+                        System Architecture Highlights:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                        {item.pillars.map((pil, pIdx) => (
+                          <div key={pIdx} className="flex items-center space-x-2 text-neutral-800">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span className="font-semibold">{pil}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Terminal Specs Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs font-mono mb-6">
+                    <div className="p-3 rounded-xl border border-neutral-200 bg-white">
+                      <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Recommended Pairs:</span>
+                      <span className="font-bold text-black text-[11px] truncate block">
+                        {item.recommended_pairs.slice(0, 3).join(' · ')}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-neutral-200 bg-white">
+                      <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Execution Timeframe:</span>
+                      <span className="font-bold text-black text-[11px] block">{item.timeframe}</span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-neutral-200 bg-white">
+                      <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Min Account Size:</span>
+                      <span className="font-bold text-emerald-700 text-[11px] block">${item.min_deposit} USD</span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-neutral-200 bg-white">
+                      <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Risk Engine:</span>
+                      <span className="font-bold text-[#855f0b] text-[11px] block">Automated SL/TP</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Risk Disclaimer */}
-                <div className="mt-6 flex items-start space-x-2 rounded-xl bg-[#fdfbf7] p-3.5 border border-[#d4af37]/35 text-[11px] text-neutral-600">
-                  <ShieldAlert className="h-4 w-4 text-[#aa851d] shrink-0 mt-0.5" />
-                  <p>
-                    <strong className="text-neutral-800">Mandatory Risk Disclaimer:</strong> Past performance is not indicative of future results. Algorithmic trading involves substantial risk of loss of capital. We never issue profit guarantees. Test on a demo account before live deployment.
-                  </p>
+                {/* CTAs */}
+                <div className="pt-4 border-t border-neutral-100 flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => onViewProductPage(item.id)}
+                    className="gold-btn flex-1 py-3 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+                  >
+                    <span>View System Specs</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+
+                  <a
+                    href={whatsappInquiryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center space-x-2 rounded-xl border border-neutral-300 bg-white py-3 px-4 text-xs font-bold text-neutral-800 hover:border-black hover:bg-neutral-50 transition-all shadow-xs"
+                  >
+                    <MessageCircle className="h-4 w-4 text-emerald-600" />
+                    <span>Inquire / Purchase</span>
+                  </a>
                 </div>
+
               </div>
+            );
+          })}
+        </div>
 
+        {/* Global Assurance Banner */}
+        <div className="mt-12 rounded-2xl bg-white border border-[#d4af37]/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center space-x-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#faf4e6] border border-[#d4af37] text-[#aa851d] shrink-0">
+              <Shield className="h-6 w-6" />
             </div>
+            <div>
+              <h4 className="font-bold uppercase text-sm text-[#1a1a1a]">
+                Institutional Remote License Authentication
+              </h4>
+              <p className="text-xs text-neutral-600 font-mono">
+                Both Expert Advisors connect via native MQL4 and MQL5 WebRequest to verify hardware-locked MT4 and MT5 terminal licenses. Zero cracks, 100% genuine code.
+              </p>
+            </div>
+          </div>
 
+          <div className="flex items-center space-x-3 shrink-0 font-mono text-xs">
+            <span className="text-neutral-500">Official Desk:</span>
+            <strong className="text-black">+255 610 366 248</strong>
           </div>
         </div>
 

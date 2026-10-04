@@ -9,11 +9,11 @@ interface ChatMessage {
 }
 
 const INITIAL_SUGGESTIONS = [
-  'How does Smart Scalper EA manage drawdown and risk?',
-  'What pairs and timeframes are recommended?',
-  'How do I install the .mq5 file on MT5?',
-  'What is the minimum recommended capital to start?',
-  'How do I buy a license key via WhatsApp?',
+  'What is the difference between Berserker Scalp AI and Snxperbot?',
+  'Can I run these systems on both MetaTrader 4 and MetaTrader 5?',
+  'How does Berserker Scalp AI manage hard drawdown limits?',
+  'What pairs are supported by Snxperbot Adaptive Engine?',
+  'How do I acquire a license key via WhatsApp?',
 ];
 
 export const AIAdvisor: React.FC = () => {
@@ -21,7 +21,7 @@ export const AIAdvisor: React.FC = () => {
     {
       id: 'welcome',
       role: 'model',
-      text: `Hello! I am the **Smart Scalper EA AI Advisor** for **EA ALGO COMMUNITY**.\n\nI can answer questions regarding trading execution, currency pairs (EURUSD, XAUUSD, NAS100), MT5 configuration, and risk management guidelines.\n\n*Note: I do not provide financial advice, live price quotes, or profit guarantees. For purchasing the robot or joining Pool Account Management, reach out to our desk on WhatsApp at +255 610 366 248.*`,
+      text: `Hello! I am the **XTech Algo Trading AI Advisor**.\n\nI can answer questions regarding our Expert Advisors (**Berserker Scalp AI** and **Snxperbot Adaptive Engine**), dual-terminal setup on **MetaTrader 4 & MetaTrader 5 (MT4 & MT5)**, currency pairs (Gold XAUUSD, NAS100, 28 forex pairs), risk mitigation, and remote license authentication.\n\n*Note: I do not provide financial advice, live market quotes, or profit guarantees. For purchasing licenses or custom broker setups, reach out directly to our official desk on WhatsApp at +255 610 366 248 or Telegram @XtechTrades.*`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);

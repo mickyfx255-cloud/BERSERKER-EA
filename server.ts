@@ -156,19 +156,52 @@ function loadData() {
   const initialData = {
     products: [
       {
-        id: 'prod-smart-scalper-01',
-        name: 'Smart Scalper EA',
-        tagline: 'Precision High-Frequency MT5 Execution Robot',
-        description: 'Automated algorithmic trading system built exclusively for MetaTrader 5. Features proprietary dynamic micro-trend detection, sub-millisecond execution logic, and automated strict risk ceiling controls.',
-        price: null, // "Price coming soon" initially until set by admin
+        id: 'prod-berserker-scalp-ai',
+        name: 'BERSERKER SCALP AI',
+        brand: 'XTech Algo Trading',
+        tagline: 'UNLEASH MARKET FURY. SCALE THROUGH VOLATILITY WITH SPEED.',
+        description: 'Stop trading defense. Deploy high-velocity AI designed to multiply capital with hard drawdown limits. Built for volatility, engineered for profits on MetaTrader 5.',
+        price: null, // Price via desk inquiry
         currency: 'USD',
         active: true,
         featured: true,
-        version: 'v2.4.1',
-        platform: 'MetaTrader 5 (MT5)',
+        version: 'v3.2.0 (Dual MT4/MT5)',
+        platform: 'MetaTrader 4 & MetaTrader 5 (MT4 & MT5)',
         min_deposit: 100,
-        recommended_pairs: ['EURUSD', 'XAUUSD', 'GBPUSD', 'NAS100'],
+        recommended_pairs: ['XAUUSD (Gold)', 'NAS100', 'US30', 'EURUSD'],
         timeframe: 'M1 / M5',
+        image_url: '/src/assets/images/berserker_scalp_box_official_1791111894715.jpg',
+        pillars: [
+          'Precision Entries',
+          'Lightning Execution',
+          'Drawdowns Locked Down',
+          'AI Scalping Solution',
+        ],
+        badge: 'BUILT FOR VOLATILITY. ENGINEERED FOR PROFITS.',
+      },
+      {
+        id: 'prod-snxperbot-adaptive-engine',
+        name: 'SNXPERBOT ADAPTIVE ENGINE',
+        brand: 'XTech Trades · Automate. Adapt. Outperform.',
+        tagline: 'PRECISION AI SWING TRADING SYSTEM',
+        description: 'Plug & Play full control engine with AI market structure adaptation. Monitors up to 28 pairs at a time with advanced swing trailing TP & SL. Prop firm ready risk-focused execution.',
+        price: null, // Price via desk inquiry
+        currency: 'USD',
+        active: true,
+        featured: true,
+        version: 'v4.1.0 (Dual MT4/MT5)',
+        platform: 'MetaTrader 4 & MetaTrader 5 (MT4 & MT5)',
+        min_deposit: 200,
+        recommended_pairs: ['28 Forex Major & Minor Pairs', 'XAUUSD', 'GBPJPY', 'EURUSD'],
+        timeframe: 'M15 / H1 / H4',
+        image_url: '/src/assets/images/snxperbot_adaptive_box_1791064534614.jpg',
+        pillars: [
+          'AI Market Analysis (Structure Adaptation)',
+          'Prop Firm Ready (Risk-Focused)',
+          'Advanced Swing Trailing (TP & SL)',
+          'Monitor Up to 28 Pairs Simultaneously',
+        ],
+        badge: 'PRECISION • PATIENCE • EXECUTION',
       },
     ] as Product[],
     orders: [
@@ -542,7 +575,7 @@ app.put('/api/admin/products/:id', (req: Request, res: Response) => {
     res.status(404).json({ error: 'Product not found' });
     return;
   }
-  const { name, tagline, description, price, currency, active, featured, version, min_deposit, recommended_pairs, timeframe } = req.body;
+  const { name, tagline, description, price, currency, active, featured, version, min_deposit, recommended_pairs, timeframe, image_url, badge, pillars, brand, platform } = req.body;
   if (name !== undefined) product.name = name;
   if (tagline !== undefined) product.tagline = tagline;
   if (description !== undefined) product.description = description;
@@ -554,6 +587,11 @@ app.put('/api/admin/products/:id', (req: Request, res: Response) => {
   if (min_deposit !== undefined) product.min_deposit = Number(min_deposit);
   if (recommended_pairs !== undefined) product.recommended_pairs = recommended_pairs;
   if (timeframe !== undefined) product.timeframe = timeframe;
+  if (image_url !== undefined) product.image_url = image_url;
+  if (badge !== undefined) product.badge = badge;
+  if (pillars !== undefined) product.pillars = pillars;
+  if (brand !== undefined) product.brand = brand;
+  if (platform !== undefined) product.platform = platform;
 
   saveData();
   res.json(product);

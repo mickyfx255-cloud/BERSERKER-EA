@@ -133,36 +133,32 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
           return;
         }
 
-        // Send Supabase Auth Confirm Signup template email
         const res = await signup(email, password, fullName);
-        if (res.success && res.requiresVerification) {
-          setPendingEmail(email.trim());
-          setPendingName(fullName.trim());
-          setPendingPass(password);
-          setActivePreviewCode(res.previewCode || null);
-          setResendCooldown(60);
-          setStep('verify');
-          setSuccessMsg(`Confirmation email dispatched to ${email.trim()}! Check your Supabase mailbox below.`);
-          // Automatically open the Supabase Email Confirmation Modal so user sees the email immediately!
-          setMailboxOpen(true);
+        if (res.success) {
+          setSuccessMsg('Account created successfully! Welcome to XTech Algo Trading. Redirecting to dashboard...');
+          setTimeout(() => {
+            if (AUTHORIZED_ADMIN_EMAILS.includes(email.trim().toLowerCase())) {
+              navigate('/admin');
+            } else {
+              navigate('/dashboard');
+            }
+          }, 700);
         } else {
-          setError(res.error || 'Failed to initiate verification');
+          setError(res.error || 'Failed to create account');
         }
       } else {
         // Sign In
         const result = await login(email, password);
         if (result.success) {
           const cleanEmail = email.trim().toLowerCase();
-          if (result.requiresVerification) {
-            // Unconfirmed account attempting to log in
-            setPendingEmail(cleanEmail);
-            setStep('verify');
-            setError('Email confirmation required before dashboard access. Check your inbox for the Supabase confirmation email.');
-          } else if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
+          setSuccessMsg('Signed in successfully! Redirecting...');
+          setTimeout(() => {
+            if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
+              navigate('/admin');
+            } else {
+              navigate('/dashboard');
+            }
+          }, 600);
         } else {
           setError(result.error || 'Invalid credentials');
         }
@@ -256,21 +252,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
   };
 
   // Handle Google Login Selection
-  const handleGoogleSelect = async (chosenEmail: string, chosenName: string) => {
+  const handleGoogleDirectSignIn = async (chosenEmail?: string, chosenName?: string) => {
     setLoading(true);
+    setError(null);
     try {
-      await loginWithGoogle(chosenEmail, chosenName);
-      setGoogleModalOpen(false);
-      if (AUTHORIZED_ADMIN_EMAILS.includes(chosenEmail.toLowerCase())) {
-        navigate('/admin');
+      const emailToUse = (chosenEmail || customGoogleEmail || 'centraldispensar@gmail.com').trim();
+      const nameToUse = (chosenName || customGoogleName || (emailToUse === 'centraldispensar@gmail.com' ? 'Valued Trader' : emailToUse.split('@')[0])).trim();
+      const res = await loginWithGoogle(emailToUse, nameToUse);
+      if (res.success) {
+        setGoogleModalOpen(false);
+        setSuccessMsg(`Signed in with Google (${emailToUse})! Redirecting...`);
+        setTimeout(() => {
+          if (AUTHORIZED_ADMIN_EMAILS.includes(emailToUse.toLowerCase())) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 500);
       } else {
-        navigate('/dashboard');
+        setError(res.error || 'Google sign in failed');
       }
     } catch (err: any) {
       setError(err.message || 'Google sign in failed');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSelect = (chosenEmail: string, chosenName: string) => {
+    handleGoogleDirectSignIn(chosenEmail, chosenName);
   };
 
   return (
@@ -552,32 +562,43 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                 </span>
               </div>
 
-              {/* Claymorphic Google Authentication Button */}
-              <button
-                type="button"
-                onClick={() => setGoogleModalOpen(true)}
-                className="clay-google-btn w-full py-3.5 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-3 cursor-pointer"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.2-1.9.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
-                  />
-                </svg>
-                <span>Sign in with Google Account</span>
-              </button>
+              {/* Claymorphic Google Authentication Button - 1-Click Direct Sign In */}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleGoogleDirectSignIn('centraldispensar@gmail.com', 'Valued Trader')}
+                  className="clay-google-btn w-full py-3.5 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-3 cursor-pointer shadow-sm hover:shadow transition-all"
+                >
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#EA4335"
+                      d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
+                    />
+                    <path
+                      fill="#4285F4"
+                      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.2-1.9.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
+                    />
+                  </svg>
+                  <span>1-Click Continue with Google</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setGoogleModalOpen(true)}
+                  className="w-full text-center text-[11px] font-mono text-neutral-500 hover:text-[#0066ff] transition-colors cursor-pointer"
+                >
+                  Or choose another Google account email →
+                </button>
+              </div>
 
             </div>
           )}
@@ -620,24 +641,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
             </div>
 
             <p className="text-xs text-neutral-600">
-              Sign in with your Google account to access your trading dashboard:
+              Select or type any Google email to immediately sign into the portal:
             </p>
 
             {/* Quick Profile Cards */}
             <div className="space-y-2.5 font-mono text-xs">
-              {/* Standard Trader Account */}
               <button
                 type="button"
-                onClick={() => handleGoogleSelect('trader.alex@gmail.com', 'Alex Trader')}
+                onClick={() => handleGoogleSelect('centraldispensar@gmail.com', 'Valued Trader')}
+                className="w-full text-left p-3.5 rounded-2xl border border-blue-300 bg-blue-50/70 hover:bg-blue-100/70 transition-all flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066ff] text-white font-bold text-sm shadow-xs">
+                    C
+                  </div>
+                  <div>
+                    <span className="font-bold text-black text-xs block">centraldispensar@gmail.com</span>
+                    <span className="text-[11px] text-blue-700 font-semibold">Current User · 1-Click Instant Login</span>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[#0066ff]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleGoogleSelect('mickybonny9@gmail.com', 'Micky Bonny (Admin)')}
                 className="w-full text-left p-3.5 rounded-2xl border border-neutral-300 bg-white hover:bg-neutral-50 transition-all flex items-center justify-between cursor-pointer shadow-xs"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 font-bold text-sm">
-                    G
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#18191e] text-[#ffd700] font-bold text-sm">
+                    M
                   </div>
                   <div>
-                    <span className="font-bold text-black text-xs block">Alex Trader</span>
-                    <span className="text-[11px] text-neutral-600">trader.alex@gmail.com (Instant Google Profile)</span>
+                    <span className="font-bold text-black text-xs block">Micky Bonny (Admin)</span>
+                    <span className="text-[11px] text-neutral-600">mickybonny9@gmail.com (Verified Admin)</span>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-neutral-400" />
@@ -647,14 +684,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
             {/* Custom Google Account Input */}
             <div className="border-t border-neutral-200 pt-3">
               <span className="text-[11px] text-neutral-500 font-mono block mb-2 font-semibold">
-                Or Enter Your Google Email Address:
+                Or Type Any Google Account Email:
               </span>
               <div className="space-y-2">
                 <input
                   type="email"
                   value={customGoogleEmail}
                   onChange={e => setCustomGoogleEmail(e.target.value)}
-                  placeholder="your.google.account@gmail.com"
+                  placeholder="your.email@gmail.com"
                   className="clay-input w-full py-2.5 px-3 text-xs font-mono text-neutral-900 focus:outline-none"
                 />
                 <button
@@ -666,9 +703,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                       customGoogleName || customGoogleEmail.split('@')[0]
                     )
                   }
-                  className="clay-btn-gold w-full py-2.5 text-xs font-bold uppercase disabled:opacity-50 cursor-pointer"
+                  className="clay-btn-gold w-full py-2.5 text-xs font-bold uppercase disabled:opacity-50 cursor-pointer shadow-xs"
                 >
-                  Continue with this Account
+                  Direct Sign In with this Google Email
                 </button>
               </div>
             </div>

@@ -291,15 +291,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
   const handleUpdateProduct = async (prod: Product) => {
     try {
-      await fetch(`/api/admin/products/${prod.id}`, {
+      const res = await fetch(`/api/admin/products/${prod.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(prod),
       });
+      if (!res.ok) throw new Error('Update failed');
       setEditingProduct(null);
-      fetchProducts();
+      await fetchProducts();
+      window.dispatchEvent(new Event('xtech_products_updated'));
+      localStorage.setItem('xtech_products_updated', Date.now().toString());
+      alert(`Success! "${prod.name}" has been updated. Live price ($${prod.price || 'Inquiry'}) and picture are now reflecting across the web page.`);
     } catch (e) {
       console.error(e);
+      alert('Failed to update product. Please check console.');
     }
   };
 
@@ -367,14 +372,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-extrabold uppercase tracking-tight text-[#1a1a1a]">
-                  BERSERKER EA ADMINISTRATION
+                  XTECH ALGO TRADING ADMINISTRATION
                 </h1>
-                <span className="rounded-md bg-[#faf4e6] px-2 py-0.5 text-[10px] font-mono font-bold text-[#855f0b] border border-[#d4af37]/50">
+                <span className="rounded-md bg-[#eff6ff] px-2 py-0.5 text-[10px] font-mono font-bold text-[#0066ff] border border-[#0066ff]/40">
                   SERVER GUARDED
                 </span>
               </div>
               <p className="text-xs font-mono text-neutral-500 font-semibold">
-                Master Terminal: <span className="text-[#855f0b] font-bold">System Administration Console</span> · EA ALGO COMMUNITY
+                Master Terminal: <span className="text-[#0066ff] font-bold">System Administration Console</span> · XTech Algo Trading (MT4 &amp; MT5)
               </p>
             </div>
           </div>
@@ -737,16 +742,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold uppercase text-[#1a1a1a]">Product Catalog & Pricing</h2>
+                <h2 className="text-lg font-bold uppercase text-[#1a1a1a]">Product Catalog, Pricing &amp; Images</h2>
                 <p className="text-xs font-mono text-neutral-500 font-semibold">
-                  Rule: Storefront displays only one active product (Smart Scalper EA). New products start hidden.
+                  Update live prices and product artwork. Changes reflect across the public storefront and product pages immediately.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {products.map(prod => (
-                <div key={prod.id} className="rounded-2xl border border-[#d4af37]/35 bg-white p-6 space-y-4 shadow-sm">
+                <div key={prod.id} className="rounded-2xl border border-[#0066ff]/30 bg-white p-6 space-y-4 shadow-sm">
                   <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div>
                       <h3 className="text-base font-bold uppercase text-[#1a1a1a]">{prod.name}</h3>
@@ -764,32 +769,118 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                   </div>
 
                   {editingProduct?.id === prod.id ? (
-                    <div className="space-y-3 font-mono text-xs">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Price & Currency */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-2">
+                          <label className="block text-neutral-700 mb-1 font-semibold">Price (Empty for 'Quote on Inquiry')</label>
+                          <input
+                            type="number"
+                            value={editingProduct.price ?? ''}
+                            onChange={e =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                price: e.target.value === '' ? null : Number(e.target.value),
+                              })
+                            }
+                            placeholder="e.g. 299"
+                            className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-neutral-700 mb-1 font-semibold">Currency</label>
+                          <input
+                            type="text"
+                            value={editingProduct.currency || 'USD'}
+                            onChange={e => setEditingProduct({ ...editingProduct, currency: e.target.value })}
+                            className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Product Image URL with Live Preview */}
                       <div>
-                        <label className="block text-neutral-600 mb-1 font-semibold">Price (Leave blank for 'Price coming soon')</label>
+                        <label className="block text-neutral-700 mb-1 font-semibold">Product Picture URL</label>
                         <input
-                          type="number"
-                          value={editingProduct.price ?? ''}
-                          onChange={e =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              price: e.target.value === '' ? null : Number(e.target.value),
-                            })
-                          }
-                          placeholder="e.g. 299"
-                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900"
+                          type="text"
+                          value={editingProduct.image_url || ''}
+                          onChange={e => setEditingProduct({ ...editingProduct, image_url: e.target.value })}
+                          placeholder="Image URL or /src/assets/images/..."
+                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
+                        />
+
+                        {/* Quick preset buttons */}
+                        <div className="flex flex-wrap gap-1.5 mt-2 text-[10px]">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                image_url: '/src/assets/images/berserker_scalp_box_official_1791111894715.jpg',
+                              })
+                            }
+                            className="px-2 py-1 rounded bg-blue-50 border border-blue-200 text-[#0066ff] hover:bg-blue-100 font-semibold cursor-pointer"
+                          >
+                            Use Official Berserker Box
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                image_url: '/src/assets/images/snxperbot_adaptive_box_1791064534614.jpg',
+                              })
+                            }
+                            className="px-2 py-1 rounded bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 font-semibold cursor-pointer"
+                          >
+                            Use Snxperbot Box
+                          </button>
+                        </div>
+
+                        {/* Live Image Preview */}
+                        {editingProduct.image_url && (
+                          <div className="mt-3 p-3 rounded-xl border border-neutral-200 bg-neutral-50 flex items-center space-x-3">
+                            <img
+                              src={editingProduct.image_url}
+                              alt="Preview"
+                              className="h-16 w-16 object-contain rounded-lg border border-neutral-300 bg-white"
+                            />
+                            <div>
+                              <span className="text-[11px] font-bold text-neutral-800 block">Live Preview</span>
+                              <span className="text-[10px] text-neutral-500 truncate block max-w-xs">{editingProduct.image_url}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Product Name & Tagline */}
+                      <div>
+                        <label className="block text-neutral-700 mb-1 font-semibold">Product Name</label>
+                        <input
+                          type="text"
+                          value={editingProduct.name}
+                          onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-neutral-600 mb-1 font-semibold">Product Description</label>
+                        <label className="block text-neutral-700 mb-1 font-semibold">Product Tagline</label>
+                        <input
+                          type="text"
+                          value={editingProduct.tagline || ''}
+                          onChange={e => setEditingProduct({ ...editingProduct, tagline: e.target.value })}
+                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-700 mb-1 font-semibold">Product Description</label>
                         <textarea
                           value={editingProduct.description}
-                          onChange={e =>
-                            setEditingProduct({ ...editingProduct, description: e.target.value })
-                          }
+                          onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })}
                           rows={3}
-                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900"
+                          className="w-full rounded-xl border border-neutral-300 bg-[#faf8f5] p-2.5 text-neutral-900 focus:border-[#0066ff] focus:outline-none"
                         />
                       </div>
 
@@ -798,9 +889,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                           <input
                             type="checkbox"
                             checked={editingProduct.active}
-                            onChange={e =>
-                              setEditingProduct({ ...editingProduct, active: e.target.checked })
-                            }
+                            onChange={e => setEditingProduct({ ...editingProduct, active: e.target.checked })}
                           />
                           <span>Show on Public Storefront</span>
                         </label>
@@ -809,36 +898,53 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                       <div className="flex space-x-2 pt-2">
                         <button
                           onClick={() => handleUpdateProduct(editingProduct)}
-                          className="gold-btn px-4 py-2 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                          className="gold-btn px-5 py-2.5 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
                         >
-                          Save Product
+                          Save Changes (Live Update)
                         </button>
                         <button
                           onClick={() => setEditingProduct(null)}
-                          className="px-3 py-2 rounded-xl border border-neutral-300 text-neutral-700 hover:bg-neutral-100 cursor-pointer"
+                          className="px-3.5 py-2 rounded-xl border border-neutral-300 text-neutral-700 hover:bg-neutral-100 cursor-pointer"
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3 font-mono text-xs">
-                      <p className="text-neutral-600 text-xs leading-relaxed">{prod.description}</p>
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Thumbnail & Description Preview */}
+                      <div className="flex items-center space-x-4">
+                        {prod.image_url ? (
+                          <img
+                            src={prod.image_url}
+                            alt={prod.name}
+                            className="h-20 w-16 object-contain rounded-lg border border-neutral-200 bg-[#faf8f5] p-1 shrink-0"
+                          />
+                        ) : (
+                          <div className="h-20 w-16 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-[10px] shrink-0">
+                            No Img
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <span className="text-[11px] font-bold text-[#0066ff] block">{prod.tagline}</span>
+                          <p className="text-neutral-600 text-[11px] line-clamp-3 leading-relaxed mt-1">{prod.description}</p>
+                        </div>
+                      </div>
                       
-                      <div className="rounded-xl border border-[#d4af37]/30 bg-[#faf8f5] p-3 flex justify-between items-center">
-                        <span className="text-neutral-500 font-semibold">Current Price:</span>
-                        <span className="text-[#855f0b] font-bold text-sm">
-                          {prod.price !== null ? `$${prod.price} ${prod.currency}` : 'Price coming soon'}
+                      <div className="rounded-xl border border-[#0066ff]/30 bg-[#eff6ff]/50 p-3 flex justify-between items-center">
+                        <span className="text-neutral-600 font-semibold">Active Price:</span>
+                        <span className="text-[#0066ff] font-bold text-base">
+                          {prod.price !== null && prod.price !== undefined ? `$${prod.price} ${prod.currency || 'USD'}` : 'Custom Quote / Desk Inquiry'}
                         </span>
                       </div>
 
                       <div className="pt-2 flex justify-end space-x-2">
                         <button
                           onClick={() => setEditingProduct(prod)}
-                          className="rounded-xl border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:border-[#aa851d] hover:bg-[#faf4e6] flex items-center space-x-1 cursor-pointer"
+                          className="rounded-xl border border-neutral-300 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-800 hover:border-[#0066ff] hover:text-[#0066ff] flex items-center space-x-1.5 cursor-pointer shadow-xs transition-colors"
                         >
-                          <Edit2 className="h-3 w-3" />
-                          <span>Edit Price & Details</span>
+                          <Edit2 className="h-3.5 w-3.5 text-[#0066ff]" />
+                          <span>Edit Price &amp; Picture</span>
                         </button>
                       </div>
                     </div>

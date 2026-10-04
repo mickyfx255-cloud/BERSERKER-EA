@@ -26,29 +26,33 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#d4af37]/30 bg-white/95 shadow-xs">
+    <header className="sticky top-0 z-50 w-full border-b border-[#d4af37]/30 bg-white/95 shadow-xs backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Brand / Logo */}
+        {/* Brand / Logo - XTech Algo Trading */}
         <div 
           onClick={() => navigate('/')} 
           className="group flex cursor-pointer items-center space-x-3 transition-opacity"
         >
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-[#d4af37] bg-[#18191e] shadow-[0_0_15px_rgba(212,175,55,0.35)] group-hover:border-[#ffd700] transition-colors">
-            <Coins className="h-5 w-5 text-[#ffd700]" />
-            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4af37] bg-gradient-to-br from-[#121319] via-[#1a1c24] to-[#002b66] shadow-[0_0_18px_rgba(0,102,255,0.25)] group-hover:border-[#ffd700] transition-colors">
+            <span className="font-black text-2xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#ffd700] via-[#f59e0b] to-[#0066ff]">
+              X
+            </span>
+            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#0066ff] shadow-[0_0_8px_#0066ff]" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-extrabold tracking-tight text-lg uppercase text-[#1a1a1a] group-hover:text-[#aa851d] transition-colors">
-                SMART SCALPER EA
+              <span className="font-black tracking-tight text-lg uppercase text-[#1a1a1a] group-hover:text-[#0066ff] transition-colors flex items-center space-x-1">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#b38600] to-[#e6b800]">X</span>
+                <span className="text-[#0066ff]">TECH</span>
+                <span className="text-xs font-bold text-neutral-800 tracking-wider ml-1">ALGO TRADING</span>
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded border border-[#d4af37]/50 bg-[#faf4e6] text-[#855f0b] font-bold">
-                MT5
+              <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded-md border border-[#0066ff]/40 bg-[#eff6ff] text-[#0066ff] font-bold">
+                MT4 &amp; MT5
               </span>
             </div>
-            <p className="text-[10px] font-mono tracking-wider text-neutral-500 uppercase">
-              BERSERKER EA · EA ALGO COMMUNITY
+            <p className="text-[10px] font-mono tracking-widest text-[#d97706] font-extrabold uppercase">
+              AUTOMATE. ADAPT. OUTPERFORM.
             </p>
           </div>
         </div>
@@ -59,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             onClick={() => scrollToSection('product')} 
             className="hover:text-[#aa851d] transition-colors cursor-pointer"
           >
-            The Bot
+            EA Suite
           </button>
           <button 
             onClick={() => scrollToSection('how')} 
@@ -96,16 +100,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
 
         {/* Action Controls & Auth */}
         <div className="hidden lg:flex items-center space-x-3">
-          {/* Link to Pool Account Management */}
-          <button
-            onClick={() => navigate('/pool-management')}
-            className="group flex items-center space-x-1.5 rounded-lg border border-[#d4af37]/60 bg-[#faf4e6] px-3.5 py-1.5 text-xs font-bold text-[#855f0b] hover:bg-[#f5eacc] hover:border-[#d4af37] transition-all cursor-pointer shadow-sm"
-          >
-            <Coins className="h-3.5 w-3.5 text-[#aa851d]" />
-            <span>Pool Management</span>
-            <ArrowUpRight className="h-3.5 w-3.5 opacity-80 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          </button>
-
           {/* User state / Admin */}
           {user ? (
             <div className="flex items-center space-x-2">
@@ -146,12 +140,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
 
         {/* Mobile menu trigger */}
         <div className="flex md:hidden items-center space-x-2">
-          <button
-            onClick={() => navigate('/pool-management')}
-            className="text-[11px] font-bold text-[#855f0b] border border-[#d4af37]/60 px-2 py-1 rounded bg-[#faf4e6]"
-          >
-            Pool
-          </button>
+          {user ? (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="text-[11px] font-bold text-[#855f0b] border border-[#d4af37]/60 px-2 py-1 rounded bg-[#faf4e6]"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/auth')}
+              className="text-[11px] font-bold text-[#855f0b] border border-[#d4af37]/60 px-2 py-1 rounded bg-[#faf4e6]"
+            >
+              Sign In
+            </button>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-neutral-700 hover:text-black cursor-pointer"
@@ -168,7 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             onClick={() => scrollToSection('product')}
             className="block w-full text-left py-2 text-sm font-semibold text-neutral-700 hover:text-[#aa851d]"
           >
-            The Bot (Smart Scalper EA)
+            EA Suite (Berserker Scalp AI &amp; Snxperbot)
           </button>
           <button
             onClick={() => scrollToSection('how')}
@@ -198,16 +201,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             onClick={() => scrollToSection('contact')}
             className="block w-full text-left py-2 text-sm font-semibold text-neutral-700 hover:text-[#aa851d]"
           >
-            Contact & Support
+            Contact &amp; Support
           </button>
 
           <div className="pt-3 border-t border-neutral-200 flex flex-col space-y-2">
-            <button
-              onClick={() => { setMobileMenuOpen(false); navigate('/pool-management'); }}
-              className="w-full py-2 text-center text-xs font-bold uppercase rounded border border-[#d4af37] bg-[#faf4e6] text-[#855f0b]"
-            >
-              Open Pool Account Management Page
-            </button>
             {user ? (
               <>
                 <button

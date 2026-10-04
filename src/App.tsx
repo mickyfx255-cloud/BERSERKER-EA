@@ -30,21 +30,21 @@ export default function App() {
 
   // Sync document head and titles per route
   useEffect(() => {
-    let title = 'BERSERKER EA — Smart Scalper MT5 | EA ALGO COMMUNITY';
-    let description = 'Official portal for BERSERKER EA (Smart Scalper EA) for MetaTrader 5 and independent Pool Account Management by EA ALGO COMMUNITY.';
+    let title = 'XTech Algo Trading — Berserker Scalp AI & Snxperbot (MT4 & MT5)';
+    let description = 'Automate. Adapt. Outperform. Advanced Expert Advisor trading systems designed for precision, consistency and real market performance across MetaTrader 4 and MetaTrader 5.';
 
     if (currentPath === '/product') {
-      title = 'Smart Scalper EA — MT5 Robot | EA ALGO COMMUNITY';
-      description = 'Official product details, system specifications, and MT5 license ordering for Smart Scalper EA.';
+      title = 'Expert Advisor Systems — XTech Algo Trading (MT4 & MT5)';
+      description = 'Official product details, system specifications, and MT4/MT5 license ordering for Berserker Scalp AI and Snxperbot Adaptive Engine.';
     } else if (currentPath === '/auth') {
-      title = 'Sign In / Register — BERSERKER EA Client Portal';
-      description = 'Access your BERSERKER EA client dashboard, manage MT5 licenses, and verify your trader account.';
+      title = 'Sign In / Register — XTech Algo Trading Client Portal';
+      description = 'Access your XTech client dashboard, manage MT4 & MT5 licenses, and verify your trader account.';
     } else if (currentPath === '/dashboard') {
-      title = 'Client Dashboard — BERSERKER EA';
-      description = 'Manage your Smart Scalper EA licenses, active MT5 account bindings, and order history.';
+      title = 'Trader Dashboard — XTech Algo Trading';
+      description = 'Manage your Berserker Scalp AI & Snxperbot licenses, active MT4/MT5 account bindings, and order history.';
     } else if (currentPath === '/admin') {
-      title = 'Admin Operations — BERSERKER EA';
-      description = 'EA ALGO COMMUNITY administrative console: product pricing, order flow, live bot results, and MQL5 license generation.';
+      title = 'Admin Operations — XTech Algo Trading';
+      description = 'XTech administrative console: product catalog, order flow, live bot results, and MQL4/MQL5 license generation.';
     }
 
     document.title = title;

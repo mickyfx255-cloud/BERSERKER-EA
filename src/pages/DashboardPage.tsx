@@ -420,16 +420,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="rounded bg-[#aa851d] px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-black">
-                  EXCLUSIVE MT5 ALGO
+                <span className="rounded bg-[#0066ff] px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-white">
+                  DUAL MT4 &amp; MT5 SUITE
                 </span>
-                <span className="text-xs font-mono text-neutral-400">BUILD v2.4.1</span>
+                <span className="text-xs font-mono text-neutral-400">XTECH 2026</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-[#faf4e6]">
-                DEPLOY SMART SCALPER EA
+                DEPLOY BERSERKER SCALP AI &amp; SNXPERBOT
               </h2>
               <p className="max-w-xl text-xs sm:text-sm text-neutral-300 leading-relaxed font-sans">
-                Official institutional algorithmic scalper. Zero martingale, dynamic stop-loss, and high-precision execution on MetaTrader 5 (Gold XAUUSD).
+                Official institutional algorithmic systems. Deploy Berserker Scalp AI (High-Velocity Gold Scalper) and Snxperbot Adaptive Engine (28-Pair Swing System) across MetaTrader 4 &amp; MetaTrader 5.
               </p>
             </div>
 
@@ -438,8 +438,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
                 onClick={() => navigate('/product')}
                 className="gold-btn rounded-xl px-6 py-3.5 text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer shadow-lg"
               >
-                <ShoppingBag className="h-4 w-4" />
-                <span>Request EA License</span>
+                <ShoppingBag className="h-4 w-4 text-black" />
+                <span>Explore Systems &amp; Order</span>
               </button>
               <a
                 href={whatsappConciergeUrl}

@@ -7,17 +7,17 @@ export const DEFAULT_PRODUCTS: Product[] = [
     brand: 'XTech Algo Trading',
     tagline: 'UNLEASH MARKET FURY. SCALE THROUGH VOLATILITY WITH SPEED.',
     description:
-      'Stop trading defense. Deploy high-velocity AI designed to multiply capital with hard drawdown limits. Built for volatility, engineered for profits on MetaTrader 5.',
+      'Stop trading defense. Deploy high-velocity AI designed to multiply capital with hard drawdown limits. Built for volatility, engineered for profits across MetaTrader 4 & MetaTrader 5 (MT4 & MT5).',
     price: null, // Custom institutional quote / License key via desk
     currency: 'USD',
     active: true,
     featured: true,
-    version: 'v3.2.0',
-    platform: 'MetaTrader 5 (MT5)',
+    version: 'v3.2.0 (Dual MT4/MT5)',
+    platform: 'MetaTrader 4 & MetaTrader 5 (MT4 & MT5)',
     min_deposit: 100,
     recommended_pairs: ['XAUUSD (Gold)', 'NAS100', 'US30', 'EURUSD'],
     timeframe: 'M1 / M5',
-    image_url: '/src/assets/images/berserker_scalp_box_1791064523648.jpg',
+    image_url: '/src/assets/images/berserker_scalp_box_official_1791111894715.jpg',
     pillars: [
       'Precision Entries',
       'Lightning Execution',
@@ -32,13 +32,13 @@ export const DEFAULT_PRODUCTS: Product[] = [
     brand: 'XTech Trades · Automate. Adapt. Outperform.',
     tagline: 'PRECISION AI SWING TRADING SYSTEM',
     description:
-      'Plug & Play full control engine with AI market structure adaptation. Monitors up to 28 pairs at a time with advanced swing trailing TP & SL. Prop firm ready risk-focused execution.',
+      'Plug & Play full control engine with AI market structure adaptation. Monitors up to 28 pairs at a time with advanced swing trailing TP & SL. Prop firm ready risk-focused execution on MetaTrader 4 & MetaTrader 5 (MT4 & MT5).',
     price: null, // Custom institutional quote / License key via desk
     currency: 'USD',
     active: true,
     featured: true,
-    version: 'v4.1.0',
-    platform: 'MetaTrader 5 (MT5)',
+    version: 'v4.1.0 (Dual MT4/MT5)',
+    platform: 'MetaTrader 4 & MetaTrader 5 (MT4 & MT5)',
     min_deposit: 200,
     recommended_pairs: ['28 Forex Major & Minor Pairs', 'XAUUSD', 'GBPJPY', 'EURUSD'],
     timeframe: 'M15 / H1 / H4',

@@ -11,9 +11,9 @@ const TICKER_ITEMS = [
   { symbol: 'US30', quote: '42,890.0', change: '+0.45%', isPair: true },
   { text: 'NO GRID · NO DANGEROUS MARTINGALE', isTag: true },
   { symbol: 'GBPJPY', quote: '197.820', change: '-0.24%', isPair: true },
-  { text: 'EA ALGO COMMUNITY VERIFIED', isTag: true },
+  { text: 'XTECH ALGO TRADING · AUTOMATE. ADAPT. OUTPERFORM.', isTag: true },
   { symbol: 'BTCUSD', quote: '68,450.0', change: '+2.41%', isPair: true },
-  { text: 'METATRADER 5 EXCLUSIVE PROTOCOL', isTag: true },
+  { text: 'ENGINEERED FOR METATRADER 4 & METATRADER 5', isTag: true },
 ];
 
 export const TickerBand: React.FC = () => {

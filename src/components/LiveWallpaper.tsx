@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import wallpaperImg from '../assets/images/pool_hero_gold_bull_1791007823647.jpg';
+import wallpaperImg from '../assets/images/xtech_globe_trading_bg_1791109912975.jpg';
 
 interface Particle {
   x: number;
@@ -70,9 +70,9 @@ export const LiveWallpaper: React.FC = () => {
 
     const particleColors = [
       'rgba(212, 175, 55, ',   // Metallic Gold
-      'rgba(255, 215, 0, ',    // Bright Gold
-      'rgba(245, 158, 11, ',   // Amber
-      'rgba(254, 240, 138, ',  // Pale Champagne
+      'rgba(0, 112, 243, ',    // XTech Electric Blue
+      'rgba(255, 215, 0, ',    // Bright Bullion Gold
+      'rgba(14, 165, 233, ',   // Cyan Data Particle
     ];
 
     let particles: Particle[] = [];
@@ -185,7 +185,8 @@ export const LiveWallpaper: React.FC = () => {
       >
         <img
           src={wallpaperImg}
-          alt=""
+          alt="XTech Global Trading Background"
+          referrerPolicy="no-referrer"
           loading="eager"
           decoding="async"
           style={{
