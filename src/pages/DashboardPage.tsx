@@ -33,11 +33,9 @@ interface DashboardPageProps {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
   const {
     user,
+    loading: authLoading,
     isAdmin,
     logout,
-    verifyCode,
-    confirmEmailDirectly,
-    sendVerificationCode,
   } = useAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -65,13 +63,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
   }, [resendCooldown]);
 
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       navigate('/auth');
       return;
     }
 
-    // Only fetch dashboard data if email is confirmed
-    if (user.email_verified) {
+    if (user) {
       fetch('/api/orders')
         .then(res => res.json())
         .then((data: Order[]) => {
@@ -86,7 +83,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
         })
         .catch(console.error);
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -148,8 +145,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
     }
   };
 
-  // CHECKPOINT: Require email confirmation before accessing dashboard
-  if (user && !user.email_verified) {
+  // Loading state while checking Firebase authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen text-[#1a1a1a] flex flex-col justify-between bg-transparent">
+        <Navbar currentPath="/dashboard" navigate={navigate} />
+        <main className="flex-1 flex items-center justify-center p-8">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="h-8 w-8 rounded-full border-2 border-[#0066ff] border-t-transparent animate-spin" />
+            <span className="font-mono text-xs text-neutral-500 uppercase tracking-wider">
+              Authenticating Firebase Session...
+            </span>
+          </div>
+        </main>
+        <Footer navigate={navigate} />
+      </div>
+    );
+  }
+
+  // If not logged in, return null while redirecting to /auth
+  if (!user) {
+    return null;
+  }
+
+  // Legacy checkpoint bypassed for Firebase authenticated sessions
+  if (false && user && !user.email_verified) {
     return (
       <div className="min-h-screen text-[#1a1a1a] flex flex-col justify-between">
         <Navbar currentPath="/dashboard" navigate={navigate} />

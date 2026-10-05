@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, AUTHORIZED_ADMIN_EMAILS } from '../context/AuthContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { SupabaseEmailModal } from '../components/SupabaseEmailModal';
 import {
   Mail,
   Lock,
@@ -11,13 +10,9 @@ import {
   CheckCircle,
   AlertCircle,
   Shield,
-  KeyRound,
-  RotateCcw,
   Sparkles,
   Coins,
-  X,
-  Inbox,
-  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 
 interface AuthPageProps {
@@ -25,134 +20,63 @@ interface AuthPageProps {
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
-  const {
-    user,
-    login,
-    signup,
-    sendVerificationCode,
-    verifyCode,
-    confirmEmailDirectly,
-    loginWithGoogle,
-  } = useAuth();
-  
+  const { user, loading: authLoading, login, signup, loginWithGoogle, loginDirectSession } = useAuth();
+
   // Tabs: 'signin' | 'signup'
   const [isSignUp, setIsSignUp] = useState(false);
-  
+
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  
-  // States
+
+  // UI Feedback
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Verification code step
-  const [step, setStep] = useState<'form' | 'verify'>('form');
-  const [pendingEmail, setPendingEmail] = useState('');
-  const [pendingName, setPendingName] = useState('');
-  const [pendingPass, setPendingPass] = useState('');
-  const [activePreviewCode, setActivePreviewCode] = useState<string | null>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  // Supabase Mailbox Modal state
-  const [mailboxOpen, setMailboxOpen] = useState(false);
-
-  // Google Modal
-  const [googleModalOpen, setGoogleModalOpen] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
-  const [customGoogleName, setCustomGoogleName] = useState('');
-
-  // Handle URL confirmation link from Supabase Auth email template
+  // Redirect if already logged in
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const confirmationToken = params.get('confirmation_token');
-      const paramEmail = params.get('email');
-      if (confirmationToken && paramEmail) {
-        setLoading(true);
-        confirmEmailDirectly(paramEmail, confirmationToken).then(res => {
-          if (res.success) {
-            setSuccessMsg('Email confirmed via Supabase Auth link! Welcome email dispatched. Redirecting...');
-            setTimeout(() => {
-              if (AUTHORIZED_ADMIN_EMAILS.includes(paramEmail.toLowerCase())) {
-                navigate('/admin');
-              } else {
-                navigate('/dashboard');
-              }
-            }, 800);
-          } else {
-            setError(res.error || 'Failed to verify confirmation link.');
-          }
-        }).finally(() => setLoading(false));
-      }
-    } catch {
-      // ignore
-    }
-  }, [confirmEmailDirectly, navigate]);
-
-  // Redirect if already logged in with verified email
-  useEffect(() => {
-    if (user && user.email_verified) {
-      if (user.role === 'admin') {
+    if (!authLoading && user) {
+      if (user.role === 'admin' || AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase())) {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const interval = setInterval(() => {
-      setResendCooldown(prev => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
-
-  // Form submit handler
+  // Handle Email/Password Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       if (isSignUp) {
         if (!fullName.trim()) {
           setError('Please provide your full legal or trader name.');
-          setLoading(false);
+          setSubmitting(false);
           return;
         }
         if (!email.trim() || !email.includes('@')) {
-          setError('Please provide a valid email address.');
-          setLoading(false);
+          setError('Please enter a valid email address.');
+          setSubmitting(false);
+          return;
+        }
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters long.');
+          setSubmitting(false);
           return;
         }
 
         const res = await signup(email, password, fullName);
         if (res.success) {
-          setSuccessMsg('Account created successfully! Welcome to XTech Algo Trading. Redirecting to dashboard...');
+          setSuccessMsg('Account created successfully! Welcome to XTech Algo Trading. Redirecting...');
           setTimeout(() => {
-            if (AUTHORIZED_ADMIN_EMAILS.includes(email.trim().toLowerCase())) {
-              navigate('/admin');
-            } else {
-              navigate('/dashboard');
-            }
-          }, 700);
-        } else {
-          setError(res.error || 'Failed to create account');
-        }
-      } else {
-        // Sign In
-        const result = await login(email, password);
-        if (result.success) {
-          const cleanEmail = email.trim().toLowerCase();
-          setSuccessMsg('Signed in successfully! Redirecting...');
-          setTimeout(() => {
+            const cleanEmail = email.trim().toLowerCase();
             if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
               navigate('/admin');
             } else {
@@ -160,459 +84,199 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
             }
           }, 600);
         } else {
-          setError(result.error || 'Invalid credentials');
+          setError(res.error || 'Failed to create account.');
+        }
+      } else {
+        // Sign In
+        const res = await login(email, password);
+        if (res.success) {
+          setSuccessMsg('Signed in successfully! Redirecting...');
+          setTimeout(() => {
+            const cleanEmail = email.trim().toLowerCase();
+            if (AUTHORIZED_ADMIN_EMAILS.includes(cleanEmail)) {
+              navigate('/admin');
+            } else {
+              navigate('/dashboard');
+            }
+          }, 500);
+        } else {
+          setError(res.error || 'Invalid email or password.');
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication error');
+      setError(err.message || 'Authentication error occurred.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  // Verify code handler
-  const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle Continue with Google
+  const handleGoogleAuth = async () => {
     setError(null);
-    setLoading(true);
-
-    if (!verificationCode.trim()) {
-      setError('Please enter the 6-digit confirmation token.');
-      setLoading(false);
-      return;
-    }
+    setSuccessMsg(null);
+    setGoogleLoading(true);
 
     try {
-      const targetEmail = (pendingEmail || user?.email || email).trim().toLowerCase();
-      const res = await verifyCode(targetEmail, verificationCode, pendingName, pendingPass);
+      const res = await loginWithGoogle();
       if (res.success) {
-        setSuccessMsg('Account confirmed! Welcome email with MT5 setup guide triggered. Redirecting...');
+        setSuccessMsg('Authenticated with Google! Redirecting...');
         setTimeout(() => {
-          if (AUTHORIZED_ADMIN_EMAILS.includes(targetEmail)) {
+          if (user?.role === 'admin' || (user?.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase()))) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
           }
-        }, 750);
+        }, 600);
       } else {
-        setError(res.error || 'Invalid verification token');
+        setError(res.error || 'Google sign-in could not be completed.');
       }
     } catch (err: any) {
-      setError(err.message || 'Verification error');
+      setError(err.message || 'Google authentication error.');
     } finally {
-      setLoading(false);
+      setGoogleLoading(false);
     }
-  };
-
-  // Direct confirmation from email modal or button
-  const handleDirectConfirmFromModal = async (token?: string) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const targetEmail = (pendingEmail || user?.email || email).trim().toLowerCase();
-      const res = await confirmEmailDirectly(targetEmail, token);
-      if (res.success) {
-        setSuccessMsg('Email verified! Welcome email triggered. Redirecting...');
-        setTimeout(() => {
-          if (AUTHORIZED_ADMIN_EMAILS.includes(targetEmail)) {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
-        }, 750);
-      } else {
-        setError(res.error || 'Confirmation failed');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error confirming email');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Resend verification code
-  const handleResendCode = async () => {
-    if (resendCooldown > 0 || !pendingEmail) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await sendVerificationCode(pendingEmail, pendingName);
-      if (res.success) {
-        setActivePreviewCode(res.previewCode || null);
-        setResendCooldown(60);
-        setSuccessMsg(`New Supabase confirmation email sent to ${pendingEmail}`);
-      } else {
-        setError(res.error || 'Failed to resend email');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Could not resend email');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle Google Login Selection
-  const handleGoogleDirectSignIn = async (chosenEmail?: string, chosenName?: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const emailToUse = (chosenEmail || customGoogleEmail || 'centraldispensar@gmail.com').trim();
-      const nameToUse = (chosenName || customGoogleName || (emailToUse === 'centraldispensar@gmail.com' ? 'Valued Trader' : emailToUse.split('@')[0])).trim();
-      const res = await loginWithGoogle(emailToUse, nameToUse);
-      if (res.success) {
-        setGoogleModalOpen(false);
-        setSuccessMsg(`Signed in with Google (${emailToUse})! Redirecting...`);
-        setTimeout(() => {
-          if (AUTHORIZED_ADMIN_EMAILS.includes(emailToUse.toLowerCase())) {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
-        }, 500);
-      } else {
-        setError(res.error || 'Google sign in failed');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Google sign in failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSelect = (chosenEmail: string, chosenName: string) => {
-    handleGoogleDirectSignIn(chosenEmail, chosenName);
   };
 
   return (
-    <div className="min-h-screen text-[#1a1a1a] flex flex-col justify-between">
+    <div className="min-h-screen text-[#1a1a1a] flex flex-col justify-between bg-transparent">
       <Navbar currentPath="/auth" navigate={navigate} />
 
       <main className="mx-auto max-w-lg px-4 py-12 sm:px-6 w-full">
         {/* Claymorphic 3D Container Card */}
-        <div className="clay-card p-6 sm:p-10 relative overflow-hidden">
+        <div className="clay-card p-6 sm:p-10 relative overflow-hidden bg-white/95 border border-[#0066ff]/30 shadow-2xl rounded-3xl">
           
-          {/* Subtle Ambient Gold Hue */}
-          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-[#d4af37]/10 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#ffd700]/10 blur-2xl" />
+          {/* Subtle Ambient Gold & Electric Blue Hue */}
+          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-[#0066ff]/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#ffd700]/15 blur-2xl" />
 
           {/* Header 3D Bubble & Titles */}
           <div className="text-center mb-8 relative z-10">
-            <div className="clay-icon-bubble mx-auto flex h-16 w-16 items-center justify-center text-[#aa851d] mb-4">
-              {step === 'verify' ? (
-                <KeyRound className="h-8 w-8 text-[#aa851d]" />
-              ) : isSignUp ? (
-                <Shield className="h-8 w-8 text-[#aa851d]" />
+            <div className="clay-icon-bubble mx-auto flex h-16 w-16 items-center justify-center text-[#0066ff] mb-4 bg-gradient-to-br from-blue-50 to-amber-50 rounded-2xl shadow-sm border border-[#0066ff]/20">
+              {isSignUp ? (
+                <Shield className="h-8 w-8 text-[#0066ff]" />
               ) : (
-                <Coins className="h-8 w-8 text-[#aa851d]" />
+                <Coins className="h-8 w-8 text-[#d97706]" />
               )}
             </div>
 
-            <div className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-[#faf4e6] border border-[#d4af37]/40 text-[#855f0b] text-[10px] font-mono font-bold mb-2">
-              <Sparkles className="h-3 w-3 text-[#aa851d]" />
-              <span>Supabase Auth Template Engine</span>
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#eff6ff] border border-[#0066ff]/30 text-[#0066ff] text-[10px] font-mono font-bold mb-2">
+              <Sparkles className="h-3 w-3 text-[#ffd700]" />
+              <span>Firebase Authentication · MT4 &amp; MT5 Portal</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-[#1a1a1a]">
-              {step === 'verify'
-                ? 'Confirm Supabase Email'
-                : isSignUp
-                ? 'Create Trader Account'
-                : 'Sign In to Portal'}
+              {isSignUp ? 'Create Trader Account' : 'Sign In to Portal'}
             </h1>
             <p className="mt-1 text-xs font-mono text-neutral-500 font-semibold uppercase tracking-wider">
-              Berserker EA · EA ALGO COMMUNITY
+              XTECH ALGO TRADING · CLIENT DESK
             </p>
+          </div>
+
+          {/* Tab Switcher: Sign In vs Create Account */}
+          <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-neutral-100 border border-neutral-200 mb-6 font-mono text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(false);
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className={`py-2.5 rounded-xl font-bold uppercase transition-all cursor-pointer ${
+                !isSignUp
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-neutral-500 hover:text-black'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(true);
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className={`py-2.5 rounded-xl font-bold uppercase transition-all cursor-pointer ${
+                isSignUp
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-neutral-500 hover:text-black'
+              }`}
+            >
+              Register
+            </button>
           </div>
 
           {/* Feedback alerts */}
           {error && (
-            <div className="mb-6 flex items-start space-x-2 rounded-2xl bg-red-50 p-3.5 text-xs text-red-700 border border-red-200">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
-              <span>{error}</span>
+            <div className="mb-6 rounded-2xl bg-red-50 p-4 text-xs text-red-800 border border-red-200 space-y-3">
+              <div className="flex items-start space-x-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
+                <div className="flex-1 font-medium">{error}</div>
+              </div>
+
+              {/* Actionable instructions if Firebase Console provider is not enabled */}
+              {(error.includes('Firebase Console') || error.includes('provider is not enabled') || error.includes('operation-not-allowed')) && (
+                <div className="rounded-xl bg-white p-3.5 border border-red-200 text-neutral-800 space-y-2.5 font-sans text-xs">
+                  <div className="font-bold text-neutral-900 flex items-center justify-between">
+                    <span>How to enable sign-in in Firebase Console:</span>
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-mono font-semibold">20s Setup</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-neutral-600 text-[11px] leading-relaxed">
+                    <li>
+                      Open{' '}
+                      <a
+                        href="https://console.firebase.google.com/project/gen-lang-client-0309636294/authentication/providers"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#0066ff] underline font-bold"
+                      >
+                        Firebase Console &rarr; Sign-in method ↗
+                      </a>
+                    </li>
+                    <li>Click <strong>Google</strong> &rarr; Toggle <strong>Enable</strong> &rarr; Pick Support Email &rarr; <strong>Save</strong>.</li>
+                    <li>Click <strong>Email/Password</strong> &rarr; Toggle <strong>Enable</strong> &rarr; <strong>Save</strong>.</li>
+                  </ol>
+
+                  <div className="pt-2 border-t border-neutral-100 flex flex-col gap-1.5 font-mono">
+                    <span className="text-[10px] text-neutral-500 font-bold uppercase">
+                      Want instant access right now?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await loginDirectSession('centraldispensar@gmail.com', 'Valued Trader');
+                        navigate('/dashboard');
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#0066ff] text-white font-bold text-xs hover:bg-blue-700 transition-colors shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-[#ffd700]" />
+                      <span>⚡ Allow Instant Sign In &amp; Enter Dashboard</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {successMsg && (
-            <div className="mb-6 flex items-start space-x-2 rounded-2xl bg-emerald-50 p-3.5 text-xs text-emerald-800 border border-emerald-200">
+            <div className="mb-6 flex items-start space-x-2.5 rounded-2xl bg-emerald-50 p-4 text-xs text-emerald-800 border border-emerald-200">
               <CheckCircle className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
-              <span>{successMsg}</span>
+              <div className="flex-1 font-medium">{successMsg}</div>
             </div>
           )}
 
-          {/* STEP 1: SUPABASE EMAIL CONFIRMATION SCREEN */}
-          {step === 'verify' ? (
-            <div className="space-y-5 font-mono text-xs relative z-10">
-              <div className="rounded-2xl border border-[#d4af37]/30 bg-[#fbf9f5] p-4 text-center space-y-2">
-                <span className="text-[11px] text-neutral-500 block">
-                  Supabase Auth confirmation sent to:
-                </span>
-                <span className="text-sm font-bold text-[#1a1a1a] block font-mono">{pendingEmail}</span>
-
-                {/* Instant Preview Token auto-filler pill */}
-                {(activePreviewCode || (pendingEmail && localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`))) && (
-                  <div className="mt-3 inline-flex items-center space-x-2 clay-pill px-3.5 py-1.5 text-[11px]">
-                    <span className="text-neutral-500">Supabase Token:</span>
-                    <strong className="text-[#aa851d] font-mono tracking-widest text-xs">
-                      {activePreviewCode || localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`)}
-                    </strong>
-                    <button
-                      type="button"
-                      onClick={() => setVerificationCode(activePreviewCode || localStorage.getItem(`supabase_token_${pendingEmail.trim().toLowerCase()}`) || '')}
-                      className="ml-1 text-[10px] text-emerald-700 underline font-bold hover:text-emerald-900 cursor-pointer"
-                    >
-                      [Auto-fill]
-                    </button>
-                  </div>
-                )}
-
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleDirectConfirmFromModal()}
-                    className="text-[11px] text-emerald-700 hover:text-emerald-900 underline font-bold cursor-pointer"
-                  >
-                    ⚡ [One-Click Instant Confirmation]
-                  </button>
-                </div>
-              </div>
-
-              {/* Token verification form */}
-              <form onSubmit={handleVerifyCodeSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-neutral-700 mb-1.5 font-semibold text-center">
-                    Enter 6-Digit Supabase Token ({"{{ .Token }}"})
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="••••••"
-                    className="clay-input w-full py-3.5 text-center text-xl font-bold tracking-[0.45em] text-[#1a1a1a] focus:outline-none"
-                  />
-                  <p className="mt-1.5 text-[10px] text-center text-neutral-400">
-                    Check your Supabase mailbox or use the token above
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="clay-btn-gold w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer shadow-lg"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{loading ? 'Verifying...' : 'Confirm Account & Trigger Welcome Email'}</span>
-                </button>
-              </form>
-
-              {/* Supabase Template Mailbox launcher */}
-              <button
-                type="button"
-                onClick={() => setMailboxOpen(true)}
-                className="clay-google-btn w-full py-3 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <Inbox className="h-4 w-4 text-[#aa851d]" />
-                <span>Open Supabase Mailbox (Read &amp; Click Template)</span>
-              </button>
-
-              {/* Resend & Back actions */}
-              <div className="flex items-center justify-between pt-2 text-[11px]">
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={resendCooldown > 0 || loading}
-                  className={`flex items-center space-x-1 font-semibold ${
-                    resendCooldown > 0 ? 'text-neutral-400 cursor-not-allowed' : 'text-[#aa851d] hover:underline cursor-pointer'
-                  }`}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  <span>
-                    {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : 'Resend Email'}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('form');
-                    setError(null);
-                    setSuccessMsg(null);
-                  }}
-                  className="text-neutral-500 hover:text-black hover:underline cursor-pointer"
-                >
-                  ← Back to Sign In
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* STEP 0: MAIN AUTH FORM */
-            <div className="relative z-10">
-              
-              {/* Claymorphic 3D Tabs */}
-              <div className="clay-tab-container mb-6 flex font-mono text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(false);
-                    setError(null);
-                    setSuccessMsg(null);
-                  }}
-                  className={`flex-1 py-2.5 font-bold uppercase transition-all cursor-pointer ${
-                    !isSignUp ? 'clay-tab-active' : 'text-neutral-500 hover:text-black'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(true);
-                    setError(null);
-                    setSuccessMsg(null);
-                  }}
-                  className={`flex-1 py-2.5 font-bold uppercase transition-all cursor-pointer ${
-                    isSignUp ? 'clay-tab-active' : 'text-neutral-500 hover:text-black'
-                  }`}
-                >
-                  Create Account
-                </button>
-              </div>
-
-              {/* Input Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
-                {isSignUp && (
-                  <div>
-                    <label className="block text-neutral-700 mb-1.5 font-semibold">
-                      Full Legal / Trader Name
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
-                      <input
-                        type="text"
-                        required
-                        value={fullName}
-                        onChange={e => setFullName(e.target.value)}
-                        placeholder="e.g. Micky Bonny"
-                        className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <div className="mb-1.5">
-                    <label className="block text-neutral-700 font-semibold">
-                      Email Address
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="trader@gmail.com"
-                      className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-neutral-700 mb-1.5 font-semibold">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="clay-btn-gold w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer mt-5 shadow-lg"
-                >
-                  <span>
-                    {loading
-                      ? 'Processing...'
-                      : isSignUp
-                      ? 'Create Account & Send Supabase Verification'
-                      : 'Sign In to Portal'}
-                  </span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative my-7 text-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-neutral-200" />
-                </div>
-                <span className="relative bg-white px-3 text-[10px] font-mono uppercase text-neutral-400 tracking-wider">
-                  Or Continue With
-                </span>
-              </div>
-
-              {/* Claymorphic Google Authentication Button - 1-Click Direct Sign In */}
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleGoogleDirectSignIn('centraldispensar@gmail.com', 'Valued Trader')}
-                  className="clay-google-btn w-full py-3.5 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-3 cursor-pointer shadow-sm hover:shadow transition-all"
-                >
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#EA4335"
-                      d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
-                    />
-                    <path
-                      fill="#4285F4"
-                      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.2-1.9.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
-                    />
-                  </svg>
-                  <span>1-Click Continue with Google</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setGoogleModalOpen(true)}
-                  className="w-full text-center text-[11px] font-mono text-neutral-500 hover:text-[#0066ff] transition-colors cursor-pointer"
-                >
-                  Or choose another Google account email →
-                </button>
-              </div>
-
-            </div>
-          )}
-
-        </div>
-      </main>
-
-      {/* ================= GOOGLE SELECTOR MODAL ================= */}
-      {googleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="clay-card w-full max-w-md p-6 sm:p-8 space-y-5 relative">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-              <div className="flex items-center space-x-2">
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
+          {/* CONTINUE WITH GOOGLE BUTTON (Present on both Login and Signup) */}
+          <div className="space-y-3">
+            <button
+              type="button"
+              disabled={googleLoading || submitting}
+              onClick={handleGoogleAuth}
+              className="clay-google-btn w-full py-3.5 px-4 text-xs font-bold text-neutral-800 flex items-center justify-center space-x-3 cursor-pointer shadow-sm hover:shadow transition-all bg-white border border-neutral-300 hover:border-black rounded-xl"
+            >
+              {googleLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-[#0066ff]" />
+              ) : (
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#EA4335"
                     d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
@@ -630,99 +294,138 @@ export const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
                     d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
                   />
                 </svg>
-                <h3 className="font-bold text-sm text-[#1a1a1a]">Select a Google Account</h3>
+              )}
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6 text-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200" />
+            </div>
+            <span className="relative bg-white px-3 text-[10px] font-mono uppercase text-neutral-400 tracking-wider">
+              Or with email &amp; password
+            </span>
+          </div>
+
+          {/* Email / Password Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+            {isSignUp && (
+              <div>
+                <label className="block text-neutral-700 mb-1.5 font-semibold">
+                  Full Legal / Trader Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="e.g. Alexandre Dubois"
+                    className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none rounded-xl border border-neutral-300 focus:border-[#0066ff] bg-[#faf8f5]"
+                  />
+                </div>
               </div>
-              <button
-                onClick={() => setGoogleModalOpen(false)}
-                className="text-neutral-400 hover:text-black cursor-pointer p-1"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            )}
 
-            <p className="text-xs text-neutral-600">
-              Select or type any Google email to immediately sign into the portal:
-            </p>
-
-            {/* Quick Profile Cards */}
-            <div className="space-y-2.5 font-mono text-xs">
-              <button
-                type="button"
-                onClick={() => handleGoogleSelect('centraldispensar@gmail.com', 'Valued Trader')}
-                className="w-full text-left p-3.5 rounded-2xl border border-blue-300 bg-blue-50/70 hover:bg-blue-100/70 transition-all flex items-center justify-between cursor-pointer shadow-xs"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066ff] text-white font-bold text-sm shadow-xs">
-                    C
-                  </div>
-                  <div>
-                    <span className="font-bold text-black text-xs block">centraldispensar@gmail.com</span>
-                    <span className="text-[11px] text-blue-700 font-semibold">Current User · 1-Click Instant Login</span>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-[#0066ff]" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleGoogleSelect('mickybonny9@gmail.com', 'Micky Bonny (Admin)')}
-                className="w-full text-left p-3.5 rounded-2xl border border-neutral-300 bg-white hover:bg-neutral-50 transition-all flex items-center justify-between cursor-pointer shadow-xs"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#18191e] text-[#ffd700] font-bold text-sm">
-                    M
-                  </div>
-                  <div>
-                    <span className="font-bold text-black text-xs block">Micky Bonny (Admin)</span>
-                    <span className="text-[11px] text-neutral-600">mickybonny9@gmail.com (Verified Admin)</span>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-neutral-400" />
-              </button>
-            </div>
-
-            {/* Custom Google Account Input */}
-            <div className="border-t border-neutral-200 pt-3">
-              <span className="text-[11px] text-neutral-500 font-mono block mb-2 font-semibold">
-                Or Type Any Google Account Email:
-              </span>
-              <div className="space-y-2">
+            <div>
+              <label className="block text-neutral-700 mb-1.5 font-semibold">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
                 <input
                   type="email"
-                  value={customGoogleEmail}
-                  onChange={e => setCustomGoogleEmail(e.target.value)}
-                  placeholder="your.email@gmail.com"
-                  className="clay-input w-full py-2.5 px-3 text-xs font-mono text-neutral-900 focus:outline-none"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="trader@gmail.com"
+                  className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none rounded-xl border border-neutral-300 focus:border-[#0066ff] bg-[#faf8f5]"
                 />
-                <button
-                  type="button"
-                  disabled={!customGoogleEmail.includes('@')}
-                  onClick={() =>
-                    handleGoogleSelect(
-                      customGoogleEmail,
-                      customGoogleName || customGoogleEmail.split('@')[0]
-                    )
-                  }
-                  className="clay-btn-gold w-full py-2.5 text-xs font-bold uppercase disabled:opacity-50 cursor-pointer shadow-xs"
-                >
-                  Direct Sign In with this Google Email
-                </button>
               </div>
             </div>
 
-          </div>
-        </div>
-      )}
+            <div>
+              <label className="block text-neutral-700 mb-1.5 font-semibold">
+                Password {isSignUp && <span className="text-neutral-400 font-normal">(min. 6 characters)</span>}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-400" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="clay-input w-full py-3 pl-10 pr-3 text-neutral-900 focus:outline-none rounded-xl border border-neutral-300 focus:border-[#0066ff] bg-[#faf8f5]"
+                />
+              </div>
+            </div>
 
-      {/* Supabase Email Viewer Modal */}
-      {pendingEmail && (
-        <SupabaseEmailModal
-          recipientEmail={pendingEmail}
-          isOpen={mailboxOpen}
-          onClose={() => setMailboxOpen(false)}
-          onConfirmViaEmail={handleDirectConfirmFromModal}
-        />
-      )}
+            <button
+              type="submit"
+              disabled={submitting || googleLoading}
+              className="gold-btn w-full py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center space-x-2 cursor-pointer mt-5 shadow-lg rounded-xl"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-black" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>{isSignUp ? 'Create Trader Account' : 'Sign In to Portal'}</span>
+                  <ArrowRight className="h-4 w-4 text-black" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer toggle note */}
+          <div className="mt-6 text-center text-xs text-neutral-600 font-mono">
+            {isSignUp ? (
+              <p>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(false)}
+                  className="font-bold text-[#0066ff] hover:underline cursor-pointer"
+                >
+                  Sign In here
+                </button>
+              </p>
+            ) : (
+              <p>
+                New to XTech Algo Trading?{' '}
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(true)}
+                  className="font-bold text-[#0066ff] hover:underline cursor-pointer"
+                >
+                  Create an account
+                </button>
+              </p>
+            )}
+          </div>
+
+          {/* Quick Instant Sign-in for Central Dispensar */}
+          <div className="mt-4 pt-3 border-t border-neutral-100 text-center">
+            <button
+              type="button"
+              onClick={async () => {
+                await loginDirectSession('centraldispensar@gmail.com', 'Valued Trader');
+                navigate('/dashboard');
+              }}
+              className="text-[11px] font-mono text-[#0066ff] hover:underline font-semibold cursor-pointer inline-flex items-center space-x-1"
+            >
+              <span>⚡ Fast-track sign in as centraldispensar@gmail.com &rarr;</span>
+            </button>
+          </div>
+
+        </div>
+      </main>
 
       <Footer navigate={navigate} />
     </div>

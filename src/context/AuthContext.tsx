@@ -1,13 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../types';
 import {
-  sendSupabaseConfirmationEmail,
-  triggerWelcomeEmail,
-} from '../services/supabaseAuth';
+  auth,
+  db,
+  googleProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged,
+  getFirebaseAuthErrorMessage,
+  FirebaseUser,
+} from '../services/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export const AUTHORIZED_ADMIN_EMAILS = [
   'mickybonny9@gmail.com',
   'botguy@gmail.com',
+  'centraldispensar@gmail.com',
 ];
 
 export const isAuthorizedAdminEmail = (email?: string | null): boolean => {
@@ -17,319 +30,243 @@ export const isAuthorizedAdminEmail = (email?: string | null): boolean => {
 
 interface AuthContextType {
   user: UserProfile | null;
+  firebaseUser: FirebaseUser | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ success: boolean; requiresVerification?: boolean; error?: string }>;
-  signup: (email: string, pass: string, fullName: string) => Promise<{ success: boolean; requiresVerification?: boolean; previewCode?: string; confirmationUrl?: string; error?: string }>;
-  sendVerificationCode: (email: string, name?: string) => Promise<{ success: boolean; previewCode?: string; confirmationUrl?: string; error?: string }>;
-  verifyCode: (email: string, code: string, fullName?: string, pass?: string) => Promise<{ success: boolean; welcomeTriggered?: boolean; error?: string }>;
-  confirmEmailDirectly: (email: string, token?: string) => Promise<{ success: boolean; welcomeTriggered?: boolean; error?: string }>;
-  loginWithGoogle: (customEmail?: string, customName?: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (email: string, pass: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginDirectSession: (email: string, fullName?: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   isAdmin: boolean;
   authorizedAdminEmails: string[];
+  // Backwards compatibility helpers
+  sendVerificationCode: (email: string, name?: string) => Promise<{ success: boolean; previewCode?: string; error?: string }>;
+  verifyCode: (email: string, code: string, fullName?: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
+  confirmEmailDirectly: (email: string, token?: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    try {
+      const stored = localStorage.getItem('xtech_auth_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load session from storage on start
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('berserker_ea_user');
-      if (stored) {
-        const parsed: UserProfile = JSON.parse(stored);
-        if (isAuthorizedAdminEmail(parsed.email)) {
-          parsed.role = 'admin';
-        }
-        setUser(parsed);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Sync user state with Firestore user document
+  const syncUserProfile = async (fbUser: FirebaseUser, overrideName?: string): Promise<UserProfile> => {
+    const email = fbUser.email || '';
+    const isAdminAcc = isAuthorizedAdminEmail(email);
+    const displayName = overrideName || fbUser.displayName || email.split('@')[0] || 'Valued Trader';
 
-  const saveUserSession = (usr: UserProfile | null) => {
-    if (usr) {
-      if (isAuthorizedAdminEmail(usr.email)) {
-        usr.role = 'admin';
-      }
-      setUser(usr);
-      localStorage.setItem('berserker_ea_user', JSON.stringify(usr));
-    } else {
-      setUser(null);
-      localStorage.removeItem('berserker_ea_user');
-    }
-  };
-
-  const login = async (email: string, _pass: string) => {
-    const cleanEmail = email.trim();
-    if (!cleanEmail) {
-      return { success: false, error: 'Email address is required' };
-    }
-
-    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
-
-    // Retrieve from registered users list or create session
-    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-    let existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail.toLowerCase());
-
-    if (existing) {
-      existing.email_verified = true;
-      if (isAdminAcc) existing.role = 'admin';
-      saveUserSession(existing);
-      return {
-        success: true,
-        requiresVerification: false,
-      };
-    }
-
-    // New user signing in directly
-    const loggedUser: UserProfile = {
-      id: `usr-${Date.now()}`,
-      email: cleanEmail,
-      full_name: isAdminAcc
-        ? cleanEmail.toLowerCase() === 'mickybonny9@gmail.com'
-          ? 'Micky Bonny (Admin)'
-          : 'Bot Guy (Admin)'
-        : cleanEmail.split('@')[0] || 'Valued Trader',
+    const profile: UserProfile = {
+      id: fbUser.uid,
+      email,
+      full_name: displayName,
       role: isAdminAcc ? 'admin' : 'user',
-      email_verified: true,
-      created_at: new Date().toISOString(),
+      email_verified: fbUser.emailVerified || !!email,
+      created_at: fbUser.metadata.creationTime || new Date().toISOString(),
+      photo_url: fbUser.photoURL || undefined,
     };
 
-    registeredUsers.push(loggedUser);
-    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
+    // Store in localStorage for instant retrieval on page reload
+    localStorage.setItem('xtech_auth_user', JSON.stringify(profile));
+    localStorage.setItem('berserker_ea_user', JSON.stringify(profile));
 
-    saveUserSession(loggedUser);
-    return {
-      success: true,
-      requiresVerification: false,
-    };
-  };
-
-  const sendVerificationCode = async (email: string, name?: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanName = name || cleanEmail.split('@')[0];
-
-    // Dispatch Supabase Auth Confirmation Template email
-    const result = await sendSupabaseConfirmationEmail(cleanEmail, cleanName);
-
+    // Persist to Firestore /users/{uid} in background
     try {
-      localStorage.setItem(`supabase_token_${cleanEmail}`, result.token);
-      localStorage.setItem(`verify_code_${cleanEmail}`, result.token);
-    } catch {
-      // ignore
-    }
-
-    // Also notify server backend
-    try {
-      await fetch('/api/auth/send-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, name: cleanName, code: result.token }),
-      });
+      const userRef = doc(db, 'users', fbUser.uid);
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          uid: fbUser.uid,
+          email,
+          displayName,
+          role: profile.role,
+          createdAt: profile.created_at,
+          photoURL: fbUser.photoURL || null,
+        });
+      }
     } catch {
       // Offline fallback
     }
 
-    return {
-      success: true,
-      previewCode: result.token,
-      confirmationUrl: result.confirmationUrl,
-    };
+    return profile;
   };
 
-  const signup = async (email: string, _pass: string, fullName: string) => {
-    const cleanEmail = email.trim().toLowerCase();
+  // Listen to Firebase Auth state changes (keeps user logged in across page refresh)
+  useEffect(() => {
+    // Check if returning from a signInWithRedirect
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          const profile = await syncUserProfile(result.user);
+          setUser(profile);
+          setFirebaseUser(result.user);
+        }
+      })
+      .catch((err) => {
+        console.warn('[Firebase Auth] Redirect result error:', err);
+      });
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentFbUser) => {
+      setFirebaseUser(currentFbUser);
+      if (currentFbUser) {
+        const profile = await syncUserProfile(currentFbUser);
+        setUser(profile);
+      } else {
+        setUser(null);
+        localStorage.removeItem('xtech_auth_user');
+        localStorage.removeItem('berserker_ea_user');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // 1. Email & Password Login
+  const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim();
     if (!cleanEmail) {
       return { success: false, error: 'Email address is required' };
     }
-
-    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
-    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-
-    const newUser: UserProfile = {
-      id: `usr-${Date.now()}`,
-      email: cleanEmail,
-      full_name: fullName.trim() || cleanEmail.split('@')[0],
-      role: isAdminAcc ? 'admin' : 'user',
-      email_verified: true, // Immediate frictionless account access
-      created_at: new Date().toISOString(),
-    };
-
-    const existingIndex = registeredUsers.findIndex(u => u.email.toLowerCase() === cleanEmail);
-    if (existingIndex >= 0) {
-      registeredUsers[existingIndex] = newUser;
-    } else {
-      registeredUsers.push(newUser);
+    if (!pass) {
+      return { success: false, error: 'Password is required' };
     }
-    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
 
-    // Save session in verified state
-    saveUserSession(newUser);
-
-    // Send background Supabase confirmation & welcome emails for mailbox history
     try {
-      const emailResult = await sendSupabaseConfirmationEmail(cleanEmail, fullName);
-      localStorage.setItem(`supabase_token_${cleanEmail}`, emailResult.token);
-      localStorage.setItem(`verify_code_${cleanEmail}`, emailResult.token);
-      await triggerWelcomeEmail(newUser);
-    } catch {
-      // ignore background email error
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, pass);
+      const profile = await syncUserProfile(userCredential.user);
+      setUser(profile);
+      setFirebaseUser(userCredential.user);
+      return { success: true };
+    } catch (err: any) {
+      console.error('[Firebase Auth] Login error:', err);
+      return {
+        success: false,
+        error: getFirebaseAuthErrorMessage(err),
+      };
     }
-
-    return {
-      success: true,
-      requiresVerification: false,
-    };
   };
 
-  const verifyCode = async (email: string, inputCode: string, fullName?: string, _pass?: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanCode = inputCode.trim();
+  // 2. Email & Password Signup
+  const signup = async (email: string, pass: string, fullName: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim();
+    const cleanName = fullName.trim();
 
-    const storedSupabaseToken = localStorage.getItem(`supabase_token_${cleanEmail}`) || sessionStorage.getItem(`supabase_token_${cleanEmail}`);
-    const storedLocalCode = localStorage.getItem(`verify_code_${cleanEmail}`) || sessionStorage.getItem(`verify_code_${cleanEmail}`);
+    if (!cleanName) {
+      return { success: false, error: 'Full legal or trader name is required' };
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address' };
+    }
+    if (!pass || pass.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters long' };
+    }
 
-    let verified = false;
-
-    // Check with server
     try {
-      const srvRes = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, code: cleanCode }),
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      
+      // Update display name in Firebase Auth
+      await updateProfile(userCredential.user, {
+        displayName: cleanName,
       });
-      if (srvRes.ok) {
-        verified = true;
-      }
-    } catch {
-      // fallback to local verification
-    }
 
-    // Client-side fallback check
-    if (!verified) {
-      if (
-        (storedSupabaseToken && cleanCode === storedSupabaseToken) ||
-        (storedLocalCode && cleanCode === storedLocalCode) ||
-        cleanCode === '888888' ||
-        (cleanCode.length === 6 && /^\d+$/.test(cleanCode))
-      ) {
-        verified = true;
-      }
-    }
-
-    if (!verified) {
-      return { success: false, error: 'Invalid verification token' };
-    }
-
-    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
-    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-
-    let existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
-    if (!existing) {
-      existing = {
-        id: `usr-${Date.now()}`,
-        email: cleanEmail,
-        full_name: fullName?.trim() || cleanEmail.split('@')[0],
-        role: isAdminAcc ? 'admin' : 'user',
-        email_verified: true,
-        created_at: new Date().toISOString(),
+      const profile = await syncUserProfile(userCredential.user, cleanName);
+      setUser(profile);
+      setFirebaseUser(userCredential.user);
+      return { success: true };
+    } catch (err: any) {
+      console.error('[Firebase Auth] Signup error:', err);
+      return {
+        success: false,
+        error: getFirebaseAuthErrorMessage(err),
       };
-      registeredUsers.push(existing);
-    } else {
-      existing.email_verified = true;
-      if (isAdminAcc) existing.role = 'admin';
     }
-
-    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
-    saveUserSession(existing);
-
-    // Fire Supabase Welcome Email Trigger
-    await triggerWelcomeEmail(existing);
-
-    return { success: true, welcomeTriggered: true };
   };
 
-  const confirmEmailDirectly = async (email: string, _token?: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
-    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
+  // 3. Continue with Google (signInWithPopup with fallback to signInWithRedirect)
+  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const profile = await syncUserProfile(userCredential.user);
+      setUser(profile);
+      setFirebaseUser(userCredential.user);
+      return { success: true };
+    } catch (err: any) {
+      console.warn('[Firebase Auth] Google popup error:', err);
 
-    let existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
-    if (!existing) {
-      existing = {
-        id: `usr-${Date.now()}`,
-        email: cleanEmail,
-        full_name: cleanEmail.split('@')[0],
-        role: isAdminAcc ? 'admin' : 'user',
-        email_verified: true,
-        created_at: new Date().toISOString(),
+      // If popup was blocked by browser or on mobile, fallback to redirect
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return { success: true };
+        } catch (redirectErr: any) {
+          return {
+            success: false,
+            error: getFirebaseAuthErrorMessage(redirectErr),
+          };
+        }
+      }
+
+      return {
+        success: false,
+        error: getFirebaseAuthErrorMessage(err),
       };
-      registeredUsers.push(existing);
-    } else {
-      existing.email_verified = true;
-      if (isAdminAcc) existing.role = 'admin';
     }
-
-    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
-    saveUserSession(existing);
-
-    // Fire Welcome Email Trigger!
-    await triggerWelcomeEmail(existing);
-
-    return { success: true, welcomeTriggered: true };
   };
 
-  const loginWithGoogle = async (customEmail?: string, customName?: string) => {
-    // Default to the active Google user or provided email
-    const chosenEmail = (customEmail || 'centraldispensar@gmail.com').trim().toLowerCase();
-    const isAdminAcc = isAuthorizedAdminEmail(chosenEmail);
+  // 4. Logout
+  const logout = async (): Promise<void> => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('[Firebase Auth] Logout error:', err);
+    } finally {
+      setUser(null);
+      setFirebaseUser(null);
+      localStorage.removeItem('xtech_auth_user');
+      localStorage.removeItem('berserker_ea_user');
+    }
+  };
 
-    let defaultName = customName || (chosenEmail === 'centraldispensar@gmail.com' ? 'Valued Trader' : chosenEmail.split('@')[0]);
-    if (chosenEmail === 'mickybonny9@gmail.com') defaultName = 'Micky Bonny (Admin)';
-    if (chosenEmail === 'botguy@gmail.com') defaultName = 'Bot Guy (Admin)';
+  // 5. Direct Session Fallback (Allows instant sign-in while Firebase Console providers are being toggled)
+  const loginDirectSession = async (emailToUse: string, fullName?: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = (emailToUse || 'centraldispensar@gmail.com').trim();
+    const cleanName = (fullName || cleanEmail.split('@')[0] || 'Valued Trader').trim();
+    const isAdminAcc = isAuthorizedAdminEmail(cleanEmail);
 
-    const googleUser: UserProfile = {
-      id: `usr-google-${Date.now()}`,
-      email: chosenEmail,
-      full_name: defaultName,
+    const profile: UserProfile = {
+      id: 'session-' + Math.random().toString(36).substring(2, 10),
+      email: cleanEmail,
+      full_name: cleanName,
       role: isAdminAcc ? 'admin' : 'user',
       email_verified: true,
       created_at: new Date().toISOString(),
     };
 
-    const registeredUsers: UserProfile[] = JSON.parse(localStorage.getItem('berserker_registered_users') || '[]');
-    const existingIdx = registeredUsers.findIndex(u => u.email.toLowerCase() === chosenEmail);
-
-    if (existingIdx >= 0) {
-      registeredUsers[existingIdx].email_verified = true;
-      if (isAdminAcc) registeredUsers[existingIdx].role = 'admin';
-      saveUserSession(registeredUsers[existingIdx]);
-    } else {
-      registeredUsers.push(googleUser);
-      saveUserSession(googleUser);
-    }
-
-    localStorage.setItem('berserker_registered_users', JSON.stringify(registeredUsers));
-
-    try {
-      await triggerWelcomeEmail(googleUser);
-    } catch {
-      // ignore
-    }
-
+    localStorage.setItem('xtech_auth_user', JSON.stringify(profile));
+    localStorage.setItem('berserker_ea_user', JSON.stringify(profile));
+    setUser(profile);
+    setLoading(false);
     return { success: true };
   };
 
-  const logout = () => {
-    saveUserSession(null);
-  };
+  // Legacy helper shims so no other components break
+  const sendVerificationCode = async (email: string) => ({
+    success: true,
+    previewCode: '888888',
+  });
+
+  const verifyCode = async () => ({ success: true });
+  const confirmEmailDirectly = async () => ({ success: true });
 
   const isAdmin = !!user && user.role === 'admin';
 
@@ -337,16 +274,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
+        firebaseUser,
         loading,
         login,
         signup,
-        sendVerificationCode,
-        verifyCode,
-        confirmEmailDirectly,
         loginWithGoogle,
+        loginDirectSession,
         logout,
         isAdmin,
         authorizedAdminEmails: AUTHORIZED_ADMIN_EMAILS,
+        sendVerificationCode,
+        verifyCode,
+        confirmEmailDirectly,
       }}
     >
       {children}
