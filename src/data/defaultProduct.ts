@@ -7,8 +7,8 @@ export const DEFAULT_PRODUCTS: Product[] = [
     brand: 'XTech Algo Trading',
     tagline: 'UNLEASH MARKET FURY. SCALE THROUGH VOLATILITY WITH SPEED.',
     description:
-      'Stop trading defense. Deploy high-velocity AI designed to multiply capital with hard drawdown limits. Built for volatility, engineered for profits across MetaTrader 4 & MetaTrader 5 (MT4 & MT5).',
-    price: null, // Custom institutional quote / License key via desk
+      'High-frequency precision scalping engine for XAUUSD (Gold). Executes rapid, fixed 0.08 lot entries with tight take-profits and strict hard stop protection across MT4 & MT5.',
+    price: 299,
     currency: 'USD',
     active: true,
     featured: true,
@@ -32,8 +32,8 @@ export const DEFAULT_PRODUCTS: Product[] = [
     brand: 'XTech Trades · Automate. Adapt. Outperform.',
     tagline: 'PRECISION AI SWING TRADING SYSTEM',
     description:
-      'Plug & Play full control engine with AI market structure adaptation. Monitors up to 28 pairs at a time with advanced swing trailing TP & SL. Prop firm ready risk-focused execution on MetaTrader 4 & MetaTrader 5 (MT4 & MT5).',
-    price: null, // Custom institutional quote / License key via desk
+      'Adaptive mean reversion engine. Identifies market extremes and systematically scales positions (0.30 to 22.0 lots) on dip pullbacks, exiting at unified statistical take-profit targets across MT4 & MT5.',
+    price: 349,
     currency: 'USD',
     active: true,
     featured: true,

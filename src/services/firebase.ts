@@ -8,6 +8,7 @@ import {
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -97,6 +98,7 @@ export {
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
 };

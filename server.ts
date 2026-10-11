@@ -160,8 +160,8 @@ function loadData() {
         name: 'BERSERKER SCALP AI',
         brand: 'XTech Algo Trading',
         tagline: 'UNLEASH MARKET FURY. SCALE THROUGH VOLATILITY WITH SPEED.',
-        description: 'Stop trading defense. Deploy high-velocity AI designed to multiply capital with hard drawdown limits. Built for volatility, engineered for profits on MetaTrader 5.',
-        price: null, // Price via desk inquiry
+        description: 'High-frequency precision scalping engine for XAUUSD (Gold). Executes rapid, fixed 0.08 lot entries with tight take-profits and strict hard stop protection across MT4 & MT5.',
+        price: 299,
         currency: 'USD',
         active: true,
         featured: true,
@@ -184,8 +184,8 @@ function loadData() {
         name: 'SNXPERBOT ADAPTIVE ENGINE',
         brand: 'XTech Trades · Automate. Adapt. Outperform.',
         tagline: 'PRECISION AI SWING TRADING SYSTEM',
-        description: 'Plug & Play full control engine with AI market structure adaptation. Monitors up to 28 pairs at a time with advanced swing trailing TP & SL. Prop firm ready risk-focused execution.',
-        price: null, // Price via desk inquiry
+        description: 'Adaptive mean reversion engine. Identifies market extremes and systematically scales positions (0.30 to 22.0 lots) on dip pullbacks, exiting at unified statistical take-profit targets across MT4 & MT5.',
+        price: 349,
         currency: 'USD',
         active: true,
         featured: true,
@@ -536,7 +536,20 @@ app.post('/api/public/license/verify', (req: Request, res: Response) => {
   });
 });
 
-// 3. Products
+// 3. Products & Admin Auth
+app.post('/api/admin/login', (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  if (
+    username &&
+    typeof username === 'string' &&
+    username.trim().toUpperCase() === 'ADMIN' &&
+    password === 'XTECH255'
+  ) {
+    return res.json({ success: true, user: 'ADMIN', token: 'xtech-admin-token-255' });
+  }
+  return res.status(401).json({ success: false, error: 'Invalid username or password' });
+});
+
 app.get('/api/products', (_req: Request, res: Response) => {
   // Public only sees active products, keeping single-product storefront rule
   res.json(db.products.filter((p: Product) => p.active));
@@ -768,6 +781,19 @@ app.post('/api/admin/ea-sources', (req: Request, res: Response) => {
       saveData();
       res.status(201).json(newSource);
     }
+  }
+});
+
+// Serve public static assets
+app.use(express.static(path.resolve(process.cwd(), 'public')));
+
+// Download project source zip
+app.get('/download-source', (_req, res) => {
+  const zipPath = path.resolve(process.cwd(), 'public/xtech-algo-trading-source.zip');
+  if (fs.existsSync(zipPath)) {
+    res.download(zipPath, 'xtech-algo-trading-source.zip');
+  } else {
+    res.status(404).json({ error: 'Source archive not found' });
   }
 });
 

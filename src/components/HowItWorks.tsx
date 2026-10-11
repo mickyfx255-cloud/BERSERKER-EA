@@ -34,18 +34,18 @@ export const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <section id="how" className="relative py-24 bg-[#faf8f5]/90 border-t border-[#d4af37]/25">
+    <section id="how" className="relative py-24 bg-[#090a0d]/90 border-t border-[#d4af37]/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#0066ff]">
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#ffd700]">
             DEPLOYMENT WORKFLOW
           </span>
-          <h2 className="mt-2 font-extrabold uppercase tracking-tight text-3xl sm:text-4xl text-[#1a1a1a]">
+          <h2 className="mt-2 font-extrabold uppercase tracking-tight text-3xl sm:text-4xl text-white">
             HOW XTECH ALGORITHMIC ENGINES OPERATE
           </h2>
-          <p className="mt-3 text-sm text-neutral-600 font-sans">
+          <p className="mt-3 text-sm text-neutral-300 font-sans">
             Streamlined 4-step setup designed for seamless deployment on any MetaTrader 4 or MetaTrader 5 broker.
           </p>
         </div>
@@ -57,28 +57,28 @@ export const HowItWorks: React.FC = () => {
             return (
               <div
                 key={i}
-                className="relative terminal-card rounded-2xl p-6 flex flex-col justify-between group hover:border-[#0066ff] transition-all bg-white shadow-xs"
+                className="relative rounded-2xl p-6 flex flex-col justify-between group border border-[#d4af37]/20 hover:border-[#d4af37]/60 transition-all bg-[#111218] shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffd700] to-[#0066ff]">
+                    <span className="font-mono text-2xl font-black text-[#ffd700]">
                       {step.num}
                     </span>
-                    <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Icon className="h-5 w-5 text-[#0066ff]" />
+                    <div className="h-10 w-10 rounded-xl bg-[#171822] border border-[#d4af37]/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Icon className="h-5 w-5 text-[#ffd700]" />
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold uppercase text-[#1a1a1a] tracking-tight mb-2">
+                  <h3 className="text-base font-bold uppercase text-white tracking-tight mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-neutral-600 leading-relaxed font-sans">
+                  <p className="text-xs text-neutral-300 leading-relaxed font-sans">
                     {step.desc}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-neutral-100">
-                  <span className="font-mono text-[10px] text-neutral-500 bg-neutral-100 px-2 py-1 rounded block truncate">
+                <div className="mt-6 pt-4 border-t border-neutral-800">
+                  <span className="font-mono text-[10px] text-[#ffd700] bg-[#171822] border border-[#d4af37]/20 px-2 py-1 rounded block truncate">
                     {step.codeNote}
                   </span>
                 </div>

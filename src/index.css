@@ -15,8 +15,8 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: transparent;
-    color: #1a1a1a;
+    background-color: #090a0d;
+    color: #ffffff;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
@@ -134,106 +134,106 @@ html {
   background-size: 40px 40px;
 }
 
-/* Luxury Ivory White & Gold Cards (GPU-accelerated, zero blur overhead) */
+/* Luxury Deep Charcoal & Gold Terminal Cards */
 .terminal-card {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(212, 175, 55, 0.38);
-  box-shadow: 0 4px 20px 0 rgba(170, 133, 29, 0.07), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-  color: #1a1a1a;
+  background: #111218;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: #ffffff;
   transform: translateZ(0);
 }
 
 .terminal-card:hover {
-  border-color: rgba(212, 175, 55, 0.7);
-  box-shadow: 0 12px 35px 0 rgba(212, 175, 55, 0.14);
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 16px 45px 0 rgba(0, 0, 0, 0.7), 0 0 25px rgba(212, 175, 55, 0.12);
 }
 
 /* Black Marble Accents */
 .black-marble-card {
-  background: linear-gradient(135deg, #18191e 0%, #0f1013 100%);
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  color: #fdfbf7;
-  box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #14151c 0%, #0c0d12 100%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: #ffffff;
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.5);
   transform: translateZ(0);
 }
 
-/* Radiant 24K Gold Button */
+/* Restrained Gold Button with Black Text */
 .gold-btn {
-  background: linear-gradient(135deg, #ffd700 0%, #d4af37 45%, #b48618 100%);
-  color: #111215;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #e5c158 0%, #d4af37 45%, #b38618 100%);
+  color: #090a0d !important;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   font-weight: 800;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gold-btn:hover {
-  background: linear-gradient(135deg, #fff085 0%, #e5b842 50%, #c69214 100%);
-  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, #f5d475 0%, #dfb83c 50%, #c4941a 100%);
+  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   transform: translateY(-1.5px);
 }
 
 .gold-outline-btn {
-  border: 1.5px solid rgba(212, 175, 55, 0.6);
-  background: rgba(255, 255, 255, 0.9);
-  color: #785309;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  background: rgba(17, 18, 24, 0.85);
+  color: #ffffff;
   font-weight: 700;
   transition: all 0.2s ease;
 }
 
 .gold-outline-btn:hover {
-  border-color: #ffd700;
-  background: #faf4e6;
-  color: #1a1a1a;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+  border-color: #d4af37;
+  background: #191b24;
+  color: #ffd700;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
   transform: translateY(-1px);
 }
 
 /* Crimson highlight */
 .crimson-tag {
-  color: #e11d48;
+  color: #ef4444;
 }
 
 /* ================= CLAYMORPHISM SYSTEM ================= */
 .clay-card {
-  background: #ffffff;
-  border-radius: 32px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: #111218;
+  border-radius: 28px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
   box-shadow: 
-    inset 4px 4px 8px rgba(255, 255, 255, 0.95),
-    inset -4px -4px 8px rgba(212, 175, 55, 0.16),
-    0 24px 50px -12px rgba(170, 133, 29, 0.15),
-    0 8px 24px -4px rgba(0, 0, 0, 0.05);
+    inset 1px 1px 2px rgba(255, 255, 255, 0.06),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.8),
+    0 24px 50px -12px rgba(0, 0, 0, 0.8);
+  color: #ffffff;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .clay-card-dark {
-  background: linear-gradient(145deg, #1f2026 0%, #121317 100%);
-  border-radius: 32px;
-  border: 2px solid rgba(212, 175, 55, 0.28);
+  background: linear-gradient(145deg, #171821 0%, #0d0e13 100%);
+  border-radius: 28px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
   box-shadow: 
-    inset 3px 3px 6px rgba(255, 255, 255, 0.1),
-    inset -3px -3px 6px rgba(0, 0, 0, 0.7),
-    0 24px 50px -12px rgba(0, 0, 0, 0.6);
+    inset 2px 2px 4px rgba(255, 255, 255, 0.05),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.9),
+    0 24px 50px -12px rgba(0, 0, 0, 0.85);
+  color: #ffffff;
 }
 
 .clay-input {
-  background: #fbf9f5;
-  border-radius: 18px;
-  border: 1.5px solid rgba(212, 175, 55, 0.25);
+  background: #0e0f14;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  color: #ffffff;
   box-shadow: 
-    inset 3px 3px 6px rgba(0, 0, 0, 0.05),
-    inset -3px -3px 6px rgba(255, 255, 255, 0.95),
-    0 1px 2px rgba(0, 0, 0, 0.02);
+    inset 2px 2px 5px rgba(0, 0, 0, 0.6),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.03);
   transition: all 0.2s ease;
 }
 
 .clay-input:focus {
   border-color: #d4af37;
-  background: #ffffff;
+  background: #121319;
   box-shadow: 
-    inset 2px 2px 4px rgba(0, 0, 0, 0.04),
-    inset -2px -2px 4px rgba(255, 255, 255, 0.95),
-    0 0 0 3.5px rgba(212, 175, 55, 0.2);
+    0 0 0 3px rgba(212, 175, 55, 0.15),
+    inset 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .clay-btn-gold {

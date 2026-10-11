@@ -84,45 +84,45 @@ export const AIAdvisor: React.FC = () => {
   };
 
   return (
-    <section id="advisor" className="relative py-24 bg-[#faf8f5]/85 border-t border-[#d4af37]/25">
+    <section id="advisor" className="relative py-24 bg-[#090a0d]/90 border-t border-[#d4af37]/20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-flex items-center space-x-2 rounded-full border border-[#d4af37]/60 bg-white px-3.5 py-1 mb-3 shadow-sm">
-            <Coins className="h-3.5 w-3.5 text-[#aa851d]" />
-            <span className="font-mono text-xs uppercase font-bold text-[#855f0b]">
+          <div className="inline-flex items-center space-x-2 rounded-full border border-[#d4af37]/40 bg-[#121319] px-3.5 py-1 mb-3 shadow-md">
+            <Coins className="h-3.5 w-3.5 text-[#ffd700]" />
+            <span className="font-mono text-xs uppercase font-bold text-[#ffd700]">
               POWERED BY SERVER-SIDE INTELLIGENCE
             </span>
           </div>
-          <h2 className="font-extrabold uppercase tracking-tight text-3xl sm:text-4xl text-[#1a1a1a]">
+          <h2 className="font-extrabold uppercase tracking-tight text-3xl sm:text-4xl text-white">
             ASK THE AI TRADING ADVISOR
           </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Have questions about MT5 configuration, scalping strategy, or risk ceilings? Ask the EA ALGO COMMUNITY advisor below.
+          <p className="mt-2 text-sm text-neutral-300">
+            Have questions about MT4/MT5 configuration, scalping strategy, or risk ceilings? Ask the XTech advisor below.
           </p>
         </div>
 
-        {/* Chat Terminal Box - White Luxury Card with Black Marble Header */}
-        <div className="rounded-2xl border border-[#d4af37]/45 bg-white shadow-[0_12px_45px_rgba(212,175,55,0.12)] overflow-hidden flex flex-col h-[600px]">
+        {/* Chat Terminal Box - Dark Charcoal Luxury Card with Gold Borders */}
+        <div className="rounded-2xl border border-[#d4af37]/30 bg-[#111218] shadow-[0_16px_50px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col h-[600px]">
           
-          {/* Chat Terminal Header in Polished Black Marble */}
-          <div className="flex items-center justify-between border-b border-[#d4af37]/35 bg-[#18191e] px-6 py-4 text-white">
+          {/* Chat Terminal Header */}
+          <div className="flex items-center justify-between border-b border-[#d4af37]/25 bg-[#14151e] px-6 py-4 text-white">
             <div className="flex items-center space-x-3">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#d4af37] bg-[#22242b]">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#d4af37]/50 bg-[#1b1c26]">
                 <Bot className="h-4 w-4 text-[#ffd700]" />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                    SMART SCALPER AI ADVISOR
+                    XTECH ALGO ADVISOR
                   </span>
                   <span className="rounded bg-emerald-950 px-1.5 py-0.5 text-[9px] font-mono text-emerald-400 border border-emerald-700">
                     ONLINE
                   </span>
                 </div>
                 <p className="text-[10px] font-mono text-neutral-400">
-                  EA ALGO COMMUNITY · Model Gemini 3.8 Flash
+                  XTECH ALGO TRADING · Client Desk Intelligence
                 </p>
               </div>
             </div>
@@ -133,7 +133,7 @@ export const AIAdvisor: React.FC = () => {
                   {
                     id: 'welcome-reset',
                     role: 'model',
-                    text: `Chat session refreshed. How can I help you with Smart Scalper EA or MetaTrader 5 today?`,
+                    text: `Chat session refreshed. How can I help you with Berserker Scalp AI, Snxperbot, or MetaTrader setup today?`,
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                   },
                 ]);
@@ -145,16 +145,16 @@ export const AIAdvisor: React.FC = () => {
             </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 font-sans text-sm bg-[#fdfbf7]">
+          {/* Messages Area in Dark Charcoal */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 font-sans text-sm bg-[#0c0d12]">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex items-start space-x-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'model' && (
-                  <div className="h-7 w-7 rounded-lg bg-[#faf4e6] border border-[#d4af37]/50 flex items-center justify-center shrink-0 mt-1">
-                    <Bot className="h-4 w-4 text-[#aa851d]" />
+                  <div className="h-7 w-7 rounded-lg bg-[#161720] border border-[#d4af37]/40 flex items-center justify-center shrink-0 mt-1">
+                    <Bot className="h-4 w-4 text-[#ffd700]" />
                   </div>
                 )}
 
@@ -162,7 +162,7 @@ export const AIAdvisor: React.FC = () => {
                   className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 ${
                     msg.role === 'user'
                       ? 'gold-btn text-black font-semibold rounded-br-none shadow-md'
-                      : 'bg-white text-neutral-800 border border-[#d4af37]/35 rounded-bl-none shadow-sm'
+                      : 'bg-[#14151e] text-neutral-200 border border-[#d4af37]/25 rounded-bl-none shadow-sm'
                   }`}
                 >
                   <div className="space-y-2 whitespace-pre-wrap leading-relaxed text-xs sm:text-sm">
@@ -173,7 +173,7 @@ export const AIAdvisor: React.FC = () => {
 
                   <span
                     className={`mt-1 block text-[10px] font-mono text-right ${
-                      msg.role === 'user' ? 'text-neutral-900/80 font-bold' : 'text-neutral-400'
+                      msg.role === 'user' ? 'text-black/80 font-bold' : 'text-neutral-500'
                     }`}
                   >
                     {msg.time}
@@ -190,11 +190,11 @@ export const AIAdvisor: React.FC = () => {
 
             {loading && (
               <div className="flex items-start space-x-3">
-                <div className="h-7 w-7 rounded-lg bg-[#faf4e6] border border-[#d4af37]/50 flex items-center justify-center shrink-0">
-                  <Bot className="h-4 w-4 text-[#aa851d] animate-pulse" />
+                <div className="h-7 w-7 rounded-lg bg-[#161720] border border-[#d4af37]/40 flex items-center justify-center shrink-0">
+                  <Bot className="h-4 w-4 text-[#ffd700] animate-pulse" />
                 </div>
-                <div className="rounded-2xl rounded-bl-none bg-white border border-[#d4af37]/30 px-4 py-3 text-xs text-neutral-600 flex items-center space-x-2 shadow-sm">
-                  <span className="h-2 w-2 rounded-full bg-[#aa851d] animate-ping" />
+                <div className="rounded-2xl rounded-bl-none bg-[#14151e] border border-[#d4af37]/25 px-4 py-3 text-xs text-neutral-300 flex items-center space-x-2 shadow-sm">
+                  <span className="h-2 w-2 rounded-full bg-[#ffd700] animate-ping" />
                   <span>Synthesizing trading advisor response...</span>
                 </div>
               </div>
@@ -202,11 +202,11 @@ export const AIAdvisor: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Suggestions */}
-          <div className="border-t border-neutral-200 bg-[#faf8f5] px-4 py-2.5 overflow-x-auto">
+          {/* Quick Suggestions in Dark Charcoal */}
+          <div className="border-t border-neutral-800 bg-[#121319] px-4 py-2.5 overflow-x-auto">
             <div className="flex items-center space-x-2 w-max text-xs">
-              <span className="text-[11px] font-mono text-[#855f0b] font-bold uppercase flex items-center space-x-1 shrink-0">
-                <Sparkles className="h-3 w-3 text-[#aa851d]" />
+              <span className="text-[11px] font-mono text-[#ffd700] font-bold uppercase flex items-center space-x-1 shrink-0">
+                <Sparkles className="h-3 w-3 text-[#ffd700]" />
                 <span>Suggestions:</span>
               </span>
               {INITIAL_SUGGESTIONS.map((sug, i) => (
@@ -214,7 +214,7 @@ export const AIAdvisor: React.FC = () => {
                   key={i}
                   onClick={() => handleSend(sug)}
                   disabled={loading}
-                  className="rounded-full border border-[#d4af37]/45 bg-white px-3 py-1 text-[11px] font-medium text-neutral-700 hover:border-[#aa851d] hover:bg-[#faf4e6] transition-colors shrink-0 cursor-pointer disabled:opacity-50 shadow-xs"
+                  className="rounded-full border border-[#d4af37]/30 bg-[#171822] px-3 py-1 text-[11px] font-medium text-neutral-300 hover:border-[#ffd700] hover:text-white transition-colors shrink-0 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
                   {sug}
                 </button>
@@ -223,7 +223,7 @@ export const AIAdvisor: React.FC = () => {
           </div>
 
           {/* Input Form */}
-          <div className="border-t border-neutral-200 bg-white p-4">
+          <div className="border-t border-neutral-800 bg-[#14151e] p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -235,14 +235,14 @@ export const AIAdvisor: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about MT5 installation, scalping rules, pairs, risk..."
+                placeholder="Ask about MT4/MT5 installation, scalping rules, pairs, risk..."
                 disabled={loading}
-                className="flex-1 rounded-xl border border-neutral-300 bg-[#faf8f5] px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 focus:border-[#aa851d] focus:bg-white focus:outline-none transition-colors shadow-inner"
+                className="flex-1 rounded-xl border border-neutral-700 bg-[#0e0f14] px-4 py-3 text-sm text-white placeholder-neutral-500 focus:border-[#d4af37] focus:outline-none transition-colors"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="gold-btn rounded-xl p-3.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
+                className="gold-btn rounded-xl p-3.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md hover:brightness-105"
               >
                 <Send className="h-4 w-4 text-black" />
               </button>

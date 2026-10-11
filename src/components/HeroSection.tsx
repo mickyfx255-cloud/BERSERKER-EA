@@ -1,196 +1,261 @@
 import React from 'react';
-import globeCard from '../assets/images/xtech_globe_card_1791110494111.jpg';
-import { ShieldCheck, MessageCircle, Bot, ArrowRight, Activity, Cpu, Sparkles, CheckCircle2, Globe, TrendingUp, Zap } from 'lucide-react';
+import xtechAlgoLabLogo from '../assets/images/xtech_algo_lab_logo_1791726552396.jpg';
+import tradingWorkstationHero from '../assets/images/hero_trading_workstation_1791724696774.jpg';
+import { ArrowRight, Bot, MessageCircle, Sparkles, TrendingUp, Cpu, Activity, ShieldCheck, Crosshair, Zap } from 'lucide-react';
 
 interface HeroSectionProps {
   onViewProduct: () => void;
   onAskAI: () => void;
+  onSelectSystem?: (system: 'berserker' | 'snxperbot') => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onViewProduct, onAskAI }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onViewProduct, onAskAI, onSelectSystem }) => {
   const whatsappUrl = `https://wa.me/255610366248?text=${encodeURIComponent(
-    'Hello XTech Algo Trading, I want to inquire about purchasing your Expert Advisor trading systems for MetaTrader 4 & MetaTrader 5.'
+    'Hello XTech Algo Lab, I want to inquire about BERSERKER and SnxperBot trading systems for MetaTrader 4 & MetaTrader 5.'
   )}`;
 
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative min-h-[92vh] w-full flex items-center justify-center overflow-hidden bg-transparent border-b border-[#d4af37]/30">
-      {/* Dynamic atmospheric accents that blend with the global LiveWallpaper */}
+    <section className="relative min-h-[92vh] w-full flex items-center justify-center overflow-hidden bg-transparent border-b border-[#d4af37]/20">
+      {/* Ambient deep charcoal glow */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Scanline Sweep Animation */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-scanline h-40 w-full bg-gradient-to-b from-transparent via-[#0066ff]/15 to-transparent" />
-        </div>
-
-        {/* Ambient Ivory / White Fade Gradients for readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#faf8f5]/95 via-[#faf8f5]/85 to-transparent md:w-3/4" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#faf8f5]/65 via-transparent to-transparent" />
-
-        {/* Floating Gold & Electric Blue Sparks */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute bottom-1/4 left-1/4 h-2 w-2 rounded-full bg-[#d4af37] shadow-[0_0_12px_#d4af37] animate-[floatGoldSpark_6s_infinite]" />
-          <div className="absolute bottom-1/3 left-1/3 h-2 w-2 rounded-full bg-[#0066ff] shadow-[0_0_12px_#0066ff] animate-[floatGoldSpark_8s_1s_infinite]" />
-          <div className="absolute bottom-1/2 right-1/4 h-2.5 w-2.5 rounded-full bg-[#f59e0b] shadow-[0_0_14px_#f59e0b] animate-[floatGoldSpark_7s_2s_infinite]" />
-          <div className="absolute top-1/3 right-1/3 h-1.5 w-1.5 rounded-full bg-[#00d2ff] shadow-[0_0_10px_#00d2ff] animate-[floatGoldSpark_5s_infinite]" />
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#090a0d]/95 via-[#090a0d]/90 to-transparent md:w-3/4" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-transparent to-transparent" />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Column: Heading & Copy (100% matched to uploaded brand picture) */}
+          {/* Left Column: Heading & Copy (White with restrained gold accents) */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Top Tag - EXACTLY as in picture: "EXPERT ADVISOR TRADING" */}
+            {/* Top Brand Tag with Official Logo Badge */}
             <div className="flex items-center space-x-3">
-              <span className="font-mono text-xs sm:text-sm font-extrabold uppercase tracking-[0.28em] text-[#0066ff]">
-                EXPERT ADVISOR TRADING
+              <span className="font-mono text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] text-[#ffd700]">
+                XTECH ALGO LAB
               </span>
-              <span className="hidden sm:inline-block h-1 w-8 bg-gradient-to-r from-[#0066ff] to-[#ffd700] rounded-full" />
-              <span className="hidden sm:inline-block text-[11px] font-mono text-neutral-500 font-bold">
-                MT4 &amp; MT5 ARCHITECTURE
+              <span className="hidden sm:inline-block h-1 w-8 bg-gradient-to-r from-[#d4af37] to-neutral-700 rounded-full" />
+              <span className="hidden sm:inline-block text-[11px] font-mono text-neutral-400 font-bold">
+                DUAL INSTITUTIONAL ENGINES
               </span>
             </div>
 
-            {/* Giant Logo & Company Name - Big, visually stunning */}
-            <div className="space-y-1">
-              <div className="flex items-baseline flex-wrap gap-x-3">
-                {/* 3D Stylized X Icon */}
-                <div className="relative inline-flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#10121a] via-[#1a1e2e] to-[#002e7a] border-2 border-[#ffd700]/70 shadow-[0_0_30px_rgba(0,102,255,0.35)] shrink-0 self-center">
-                  <span className="font-black text-4xl sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-br from-[#ffd700] via-[#ffb703] to-[#0066ff] drop-shadow-md select-none">
-                    X
-                  </span>
-                  <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#0066ff] shadow-[0_0_10px_#0066ff] animate-ping" />
-                </div>
-
-                {/* TECH in giant electric blue */}
-                <span className="font-black uppercase tracking-tight text-5xl sm:text-7xl md:text-8xl text-[#0066ff] leading-none drop-shadow-sm">
-                  TECH
+            {/* Official Logo Banner & Lockup */}
+            <div className="flex items-center space-x-4">
+              <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl overflow-hidden border border-[#d4af37]/40 bg-[#090a0d] shadow-[0_0_25px_rgba(212,175,55,0.2)] shrink-0">
+                <img
+                  src={xtechAlgoLabLogo}
+                  alt="XTECH ALGO LAB Logo"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="font-mono text-xs text-[#d4af37] uppercase tracking-widest font-bold block">
+                  Official Algorithmic Suite
+                </span>
+                <span className="font-black text-white text-lg sm:text-xl tracking-tight uppercase">
+                  MT4 &amp; MT5 Architecture
                 </span>
               </div>
-
-              {/* ALGO TRADING in bold black/navy */}
-              <div className="font-black uppercase tracking-tight text-3xl sm:text-5xl md:text-6xl text-[#12141a] leading-none pt-1">
-                ALGO TRADING
-              </div>
             </div>
 
-            {/* Official Slogan - EXACTLY as in picture: "AUTOMATE. ADAPT. OUTPERFORM." */}
-            <div className="pt-2">
-              <span className="font-mono text-base sm:text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[#d97706] via-[#f59e0b] to-[#b45309] block uppercase">
-                AUTOMATE. ADAPT. OUTPERFORM.
-              </span>
-              
-              {/* Official description text - EXACTLY as in picture */}
-              <p className="mt-2 text-sm sm:text-base text-neutral-700 font-medium leading-relaxed max-w-xl">
-                Advanced Expert Advisor trading systems designed for precision, consistency and real market performance across <strong className="text-black font-bold">MetaTrader 4 &amp; MetaTrader 5</strong>.
+            {/* Exact User Headline: XTECH ALGO LAB: Two Systems. One Arsenal. */}
+            <div className="space-y-2">
+              <h1 className="font-black uppercase tracking-tight text-4xl sm:text-6xl md:text-7xl text-white leading-[1.05]">
+                XTECH ALGO LAB: <br />
+                <span className="text-white">Two Systems. </span>
+                <span className="text-[#ffd700]">One Arsenal.</span>
+              </h1>
+            </div>
+
+            {/* Exact User Sub-headline: Trend scalping meets adaptive mean reversion... */}
+            <div className="pt-1">
+              <p className="text-base sm:text-lg md:text-xl text-neutral-200 font-medium leading-relaxed max-w-2xl">
+                Trend scalping meets adaptive mean reversion. Discover the algorithmic tools engineered to conquer every market condition.
               </p>
             </div>
 
-            {/* Terminal Tech Spec Pills */}
-            <div className="flex flex-wrap gap-2.5 font-mono text-xs text-neutral-700 pt-1">
-              <div className="flex items-center space-x-2 bg-white/95 px-3 py-1.5 rounded-lg border border-[#0066ff]/40 shadow-xs">
-                <Cpu className="h-3.5 w-3.5 text-[#0066ff]" />
-                <span className="font-semibold text-neutral-800">Dual MT4 &amp; MT5 Engines</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/95 px-3 py-1.5 rounded-lg border border-[#d4af37]/40 shadow-xs">
-                <Activity className="h-3.5 w-3.5 text-[#d97706]" />
-                <span className="font-semibold text-neutral-800">Gold (XAUUSD) &amp; 28 Forex Pairs</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/95 px-3 py-1.5 rounded-lg border border-emerald-300 shadow-xs">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-emerald-700 font-bold">Zero Martingale · Hard SL</span>
-              </div>
-            </div>
-
-            {/* CTAs */}
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-              {/* Primary: View Systems */}
+            {/* Two Systems Quick Jump Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Berserker Quick Card */}
               <button
-                onClick={onViewProduct}
-                className="gold-btn group inline-flex items-center justify-center space-x-2 rounded-xl px-7 py-4 text-xs font-extrabold uppercase tracking-wider cursor-pointer shadow-lg"
+                onClick={() => scrollTo('berserker-section')}
+                className="group text-left p-3.5 rounded-2xl bg-[#111218] border border-[#38bdf8]/30 hover:border-[#38bdf8] transition-all cursor-pointer shadow-md"
               >
-                <span>Explore Expert Advisors</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="h-2 w-2 rounded-full bg-[#38bdf8]" />
+                    <span className="font-mono text-[11px] font-bold text-[#38bdf8] uppercase">
+                      SYSTEM 01 · BERSERKER
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-400 group-hover:text-white transition-colors">
+                    The Scalper →
+                  </span>
+                </div>
+                <div className="font-bold text-sm text-white">XAUUSD Precision Scalper</div>
+                <div className="text-[11px] font-mono text-neutral-300 mt-0.5">Fixed 0.08 Lots · Rapid Entries · $12 Consistent Wins</div>
               </button>
 
-              {/* Direct WhatsApp Buying & Inquiry */}
+              {/* SnxperBot Quick Card */}
+              <button
+                onClick={() => scrollTo('snxperbot-section')}
+                className="group text-left p-3.5 rounded-2xl bg-[#111218] border border-[#ef4444]/30 hover:border-[#ef4444] transition-all cursor-pointer shadow-md"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="h-2 w-2 rounded-full bg-[#ef4444]" />
+                    <span className="font-mono text-[11px] font-bold text-[#f87171] uppercase">
+                      SYSTEM 02 · SNXPERBOT
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-400 group-hover:text-white transition-colors">
+                    The Reversion Engine →
+                  </span>
+                </div>
+                <div className="font-bold text-sm text-white">Adaptive Mean Reversion</div>
+                <div className="text-[11px] font-mono text-neutral-300 mt-0.5">Dynamic Scaling (0.3 - 22) · Dip Buying · Unified TP</div>
+              </button>
+            </div>
+
+            {/* CTAs: Gold buttons with black text */}
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+              {/* Primary: Gold button with black text */}
+              <button
+                onClick={() => scrollTo('berserker-section')}
+                className="gold-btn group inline-flex items-center justify-center space-x-2 rounded-xl px-7 py-4 text-xs font-extrabold uppercase tracking-wider cursor-pointer shadow-lg hover:brightness-105"
+              >
+                <span>Explore The Systems</span>
+                <ArrowRight className="h-4 w-4 text-black group-hover:translate-x-1 transition-transform" />
+              </button>
+
+              {/* Direct WhatsApp Inquire */}
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center space-x-2 rounded-xl border border-neutral-300 bg-white/95 px-6 py-4 text-xs font-bold text-neutral-800 hover:border-black hover:bg-white transition-all shadow-xs"
+                className="inline-flex items-center justify-center space-x-2 rounded-xl border border-[#d4af37]/35 bg-[#14151c] px-6 py-4 text-xs font-bold text-white hover:border-[#ffd700] hover:bg-[#191b24] transition-all shadow-xs"
               >
-                <MessageCircle className="h-4 w-4 text-emerald-600" />
-                <span>Inquire via WhatsApp</span>
+                <MessageCircle className="h-4 w-4 text-emerald-400" />
+                <span>Inquire Desk (+255 610 366 248)</span>
               </a>
 
-              {/* Ask AI Advisor */}
+              {/* Live Trade Proof */}
               <button
-                onClick={onAskAI}
+                onClick={() => scrollTo('systems-performance')}
                 className="gold-outline-btn inline-flex items-center justify-center space-x-2 rounded-xl px-5 py-4 text-xs cursor-pointer shadow-xs"
               >
-                <Bot className="h-4 w-4 text-[#0066ff]" />
-                <span>Ask AI Advisor</span>
+                <Crosshair className="h-4 w-4 text-[#ffd700]" />
+                <span>Live Trade Proof</span>
               </button>
             </div>
 
             {/* Reassurance strip */}
-            <div className="flex items-center space-x-3 text-xs text-neutral-600 font-mono pt-1">
-              <span className="h-2 w-2 rounded-full bg-[#0066ff]" />
-              <span>Official Institutional Release</span>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono pt-1">
+              <span className="inline-flex items-center space-x-1.5 text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span>Live MetaTrader 5 Logs</span>
+              </span>
               <span>·</span>
-              <span>Prop Firm Ready</span>
+              <span className="text-neutral-300">Remote Hardware Authentication</span>
               <span>·</span>
-              <span>Desk: +255 610 366 248</span>
+              <span className="text-[#ffd700]">Zero Cracks / 100% Genuine</span>
             </div>
 
           </div>
 
-          {/* Right Column: 3D Holographic Globe & Algorithmic Trading Artwork (Matching Picture) */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="relative group w-full max-w-lg aspect-[4/3] rounded-3xl overflow-hidden border-2 border-[#0066ff]/40 shadow-[0_20px_60px_rgba(0,102,255,0.22)] bg-[#0d1017]">
-              {/* 3D Holographic Globe image render matching the picture */}
+          {/* Right Column: Premium Trading Workstation Imagery against Dark Background */}
+          <div className="lg:col-span-5 flex flex-col items-center">
+            <div className="relative group w-full max-w-lg aspect-[16/10] sm:aspect-[4/3] rounded-3xl overflow-hidden border border-[#d4af37]/35 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-[#0d0e14]">
+              
+              {/* Premium Trading Workstation Photo */}
               <img
-                src={globeCard}
-                alt="XTech Global Algorithmic Trading"
+                src={tradingWorkstationHero}
+                alt="XTech Institutional Trading Workstation"
                 referrerPolicy="no-referrer"
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
 
-              {/* Top ambient gold & blue badge */}
+              {/* Top Ambient Badges */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                <div className="flex items-center space-x-1.5 rounded-full bg-black/85 backdrop-blur-md px-3 py-1 border border-[#ffd700]/60 shadow-md">
+                <div className="flex items-center space-x-1.5 rounded-full bg-black/85 backdrop-blur-md px-3 py-1 border border-[#d4af37]/50 shadow-md">
                   <Sparkles className="h-3 w-3 text-[#ffd700]" />
                   <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#ffd700]">
-                    GLOBAL ALGO NETWORK
+                    AI WORKSTATION
                   </span>
                 </div>
-                <div className="rounded-full bg-black/85 backdrop-blur-md px-2.5 py-1 border border-[#0066ff]/60">
-                  <span className="font-mono text-[10px] font-bold text-[#60a5fa]">
-                    MT4 &amp; MT5 READY
+                <div className="rounded-full bg-black/85 backdrop-blur-md px-2.5 py-1 border border-neutral-700">
+                  <span className="font-mono text-[10px] font-bold text-white">
+                    MT4 &amp; MT5 ENGINE
                   </span>
                 </div>
               </div>
 
-              {/* Bottom glass banner matching picture style */}
-              <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-black/90 backdrop-blur-md p-3.5 border border-[#0066ff]/50 text-white space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-xs uppercase tracking-tight text-white flex items-center space-x-1.5">
-                    <span className="text-[#ffd700]">X</span>
-                    <span className="text-[#0066ff]">TECH</span>
-                    <span className="text-neutral-300">ALGO TRADING</span>
-                  </span>
-                  <div className="flex items-center space-x-1 text-[10px] font-mono text-emerald-400 font-bold">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                    <span>SYSTEM ONLINE</span>
+              {/* Floating Candlestick Chart HUD Overlay with green and red candles */}
+              <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-black/85 backdrop-blur-md p-3.5 border border-[#d4af37]/30 shadow-lg font-mono">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-neutral-800">
+                  <div className="flex items-center space-x-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold text-white">LIVE ARSENAL FEED</span>
                   </div>
+                  <span className="text-[10px] text-[#ffd700]">XAUUSD + GBPNZD</span>
                 </div>
-                <p className="text-[11px] font-mono text-neutral-300 leading-tight">
-                  Automate. Adapt. Outperform · Sub-Millisecond Execution · Hard Risk Limits
-                </p>
+
+                {/* Candlestick visual bars (Green & Red) */}
+                <div className="flex items-end justify-between pt-3 pb-1 h-12 px-1">
+                  {[
+                    { h: 32, type: 'up', val: '+0.4%' },
+                    { h: 22, type: 'down', val: '-0.2%' },
+                    { h: 42, type: 'up', val: '+0.8%' },
+                    { h: 28, type: 'up', val: '+0.3%' },
+                    { h: 18, type: 'down', val: '-0.1%' },
+                    { h: 48, type: 'up', val: '+1.2%' },
+                    { h: 38, type: 'up', val: '+0.7%' },
+                    { h: 24, type: 'down', val: '-0.3%' },
+                    { h: 45, type: 'up', val: '+0.9%' },
+                    { h: 36, type: 'up', val: '+0.6%' },
+                  ].map((bar, i) => (
+                    <div key={i} className="flex flex-col items-center">
+                      <div
+                        style={{ height: `${bar.h}px` }}
+                        className={`w-2 sm:w-2.5 rounded-xs transition-all ${
+                          bar.type === 'up'
+                            ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                            : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1">
+                  <span>M1 Scalping: Fixed 0.08</span>
+                  <span className="text-emerald-400 font-bold">+$12 Wins / Rapid TP</span>
+                </div>
               </div>
             </div>
+
+            {/* Quick Metrics Bar underneath workstation */}
+            <div className="mt-4 grid grid-cols-3 gap-3 w-full max-w-lg font-mono text-center">
+              <div className="p-2.5 rounded-xl bg-[#111218] border border-[#d4af37]/25">
+                <span className="text-[10px] text-neutral-400 uppercase block">Platforms</span>
+                <span className="text-xs font-bold text-white">MT4 &amp; MT5</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#111218] border border-[#d4af37]/25">
+                <span className="text-[10px] text-neutral-400 uppercase block">Execution</span>
+                <span className="text-xs font-bold text-emerald-400">&lt; 15ms</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#111218] border border-[#d4af37]/25">
+                <span className="text-[10px] text-neutral-400 uppercase block">License</span>
+                <span className="text-xs font-bold text-[#ffd700]">Hardware Locked</span>
+              </div>
+            </div>
+
           </div>
 
         </div>

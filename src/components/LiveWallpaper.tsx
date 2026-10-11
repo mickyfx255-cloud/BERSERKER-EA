@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import wallpaperImg from '../assets/images/xtech_globe_trading_bg_1791109912975.jpg';
+import wallpaperImg from '../assets/images/dark_gold_trading_wallpaper_1791724705881.jpg';
 
 interface Particle {
   x: number;
@@ -69,10 +69,10 @@ export const LiveWallpaper: React.FC = () => {
     window.addEventListener('resize', handleResize, { passive: true });
 
     const particleColors = [
-      'rgba(212, 175, 55, ',   // Metallic Gold
-      'rgba(0, 112, 243, ',    // XTech Electric Blue
-      'rgba(255, 215, 0, ',    // Bright Bullion Gold
-      'rgba(14, 165, 233, ',   // Cyan Data Particle
+      'rgba(212, 175, 55, ',   // Restrained Metallic Gold
+      'rgba(245, 208, 97, ',   // Soft Warm Gold
+      'rgba(255, 255, 255, ',  // Crisp White Star
+      'rgba(180, 140, 30, ',   // Deep Amber Gold
     ];
 
     let particles: Particle[] = [];
@@ -201,11 +201,11 @@ export const LiveWallpaper: React.FC = () => {
       </div>
 
       {/* Layer 2: Lightweight Static Coordinate Grid */}
-      <div className="absolute inset-0 gold-grid opacity-15" />
+      <div className="absolute inset-0 gold-grid opacity-10" />
 
-      {/* Layer 3: GPU-friendly Sunlight Sweep (pure gradient, no gaussian filter blur) */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-25">
-        <div className="animate-[sunlightSweep_18s_linear_infinite] h-full w-[35vw] -skew-x-25 bg-gradient-to-r from-transparent via-[#ffd700]/20 to-transparent" />
+      {/* Layer 3: Controlled Soft Gold Ambient Light Sweep */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-20">
+        <div className="animate-[sunlightSweep_22s_linear_infinite] h-full w-[30vw] -skew-x-25 bg-gradient-to-r from-transparent via-[#ffd700]/15 to-transparent" />
       </div>
 
       {/* Layer 4: HTML5 Canvas Particles (auto-throttles during active scroll) */}
@@ -221,8 +221,9 @@ export const LiveWallpaper: React.FC = () => {
         }}
       />
 
-      {/* Layer 5: Clean Subtle Vignette for Content Readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-white/15 via-transparent to-white/10" />
+      {/* Layer 5: Deep Charcoal Vignette for Controlled Premium Atmosphere */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d]/65 to-[#090a0d]/80" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-[#090a0d]/60 to-[#090a0d]/95" />
     </div>
   );
 };

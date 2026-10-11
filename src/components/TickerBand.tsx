@@ -18,10 +18,10 @@ const TICKER_ITEMS = [
 
 export const TickerBand: React.FC = () => {
   return (
-    <div className="relative w-full overflow-hidden border-y border-[#d4af37]/30 bg-[#16171b] py-2.5 text-white shadow-sm">
+    <div className="relative w-full overflow-hidden border-y border-[#d4af37]/20 bg-[#090a0d] py-2 text-white shadow-sm">
       {/* Side gradient fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#16171b] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#16171b] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#090a0d] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#090a0d] to-transparent" />
 
       <div className="animate-marquee flex items-center space-x-8 text-xs font-mono select-none">
         {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (

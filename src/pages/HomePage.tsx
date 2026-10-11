@@ -4,10 +4,13 @@ import { Navbar } from '../components/Navbar';
 import { TickerBand } from '../components/TickerBand';
 import { HeroSection } from '../components/HeroSection';
 import { ProductSection } from '../components/ProductSection';
+import { BerserkerSection } from '../components/BerserkerSection';
+import { SnxperBotSection } from '../components/SnxperBotSection';
+import { SystemsPerformanceSection } from '../components/SystemsPerformanceSection';
 import { HowItWorks } from '../components/HowItWorks';
 import { PlatformSection } from '../components/PlatformSection';
 import { AIAdvisor } from '../components/AIAdvisor';
-import { MentorshipSection } from '../components/MentorshipSection';
+import { RiskDisclaimerSection } from '../components/RiskDisclaimerSection';
 import { Footer } from '../components/Footer';
 import { FadeInOnScroll } from '../components/FadeInOnScroll';
 
@@ -54,14 +57,14 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="min-h-screen text-[#1a1a1a]">
+    <div className="min-h-screen text-white bg-transparent">
       {/* Sticky Navigation */}
       <Navbar currentPath="/" navigate={navigate} />
 
       {/* Hero Marquee Ticker */}
       <TickerBand />
 
-      {/* Full-Screen Animated Hero */}
+      {/* 🎨 HERO SECTION: XTECH ALGO LAB */}
       <FadeInOnScroll threshold={0.01}>
         <HeroSection
           onViewProduct={() => scrollTo('product')}
@@ -69,7 +72,26 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
         />
       </FadeInOnScroll>
 
-      {/* Dual Flagship Products Storefront Section */}
+      {/* 🤖 SECTION 1: BERSERKER (The Scalper) */}
+      <FadeInOnScroll>
+        <BerserkerSection
+          onViewProductPage={(pId) => navigate(pId ? `/product?id=${pId}` : '/product')}
+        />
+      </FadeInOnScroll>
+
+      {/* 🚀 SECTION 2: SNXPERBOT (The Reversion Engine) */}
+      <FadeInOnScroll>
+        <SnxperBotSection
+          onViewProductPage={(pId) => navigate(pId ? `/product?id=${pId}` : '/product')}
+        />
+      </FadeInOnScroll>
+
+      {/* 📊 SECTION 4: SYSTEMS PERFORMANCE */}
+      <FadeInOnScroll>
+        <SystemsPerformanceSection />
+      </FadeInOnScroll>
+
+      {/* Dual Flagship Systems Storefront & Specs */}
       <FadeInOnScroll>
         <ProductSection
           products={products}
@@ -82,19 +104,19 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
         <HowItWorks />
       </FadeInOnScroll>
 
-      {/* Platform MetaTrader 5 */}
+      {/* Platform MetaTrader 4 & MetaTrader 5 Architecture */}
       <FadeInOnScroll>
         <PlatformSection />
       </FadeInOnScroll>
 
-      {/* AI Advisor Chat */}
+      {/* AI Algorithmic Advisor Chat */}
       <FadeInOnScroll>
         <AIAdvisor />
       </FadeInOnScroll>
 
-      {/* Mentorship & Embedded Video */}
-      <FadeInOnScroll>
-        <MentorshipSection />
+      {/* ⚠️ REGULATORY RISK DISCLAIMER (Bottom of page, in small, readable text) */}
+      <FadeInOnScroll threshold={0.01}>
+        <RiskDisclaimerSection />
       </FadeInOnScroll>
 
       {/* Footer */}

@@ -76,4 +76,5 @@ export interface UserProfile {
   role: 'admin' | 'user';
   email_verified: boolean;
   created_at: string;
+  photo_url?: string;
 }

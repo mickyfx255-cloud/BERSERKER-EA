@@ -65,7 +65,6 @@ export default function App() {
       case '/product':
         return <ProductPage navigate={navigate} />;
       case '/auth':
-        return <AuthPage navigate={navigate} />;
       case '/dashboard':
         return <DashboardPage navigate={navigate} />;
       case '/admin':
