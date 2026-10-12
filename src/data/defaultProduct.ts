@@ -17,7 +17,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
     min_deposit: 100,
     recommended_pairs: ['XAUUSD (Gold)', 'NAS100', 'US30', 'EURUSD'],
     timeframe: 'M1 / M5',
-    image_url: '/src/assets/images/berserker_scalp_box_official_1791111894715.jpg',
+    image_url: '/src/assets/images/berserker_laptop_setup_1791797725326.jpg',
     pillars: [
       'Precision Entries',
       'Lightning Execution',
@@ -42,7 +42,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
     min_deposit: 200,
     recommended_pairs: ['28 Forex Major & Minor Pairs', 'XAUUSD', 'GBPJPY', 'EURUSD'],
     timeframe: 'M15 / H1 / H4',
-    image_url: '/src/assets/images/snxperbot_adaptive_box_1791064534614.jpg',
+    image_url: '/src/assets/images/snxperbot_laptop_setup_1791797959703.jpg',
     pillars: [
       'AI Market Analysis (Structure Adaptation)',
       'Prop Firm Ready (Risk-Focused)',

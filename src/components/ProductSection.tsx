@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
-import berserkerOfficialBox from '../assets/images/berserker_scalp_box_official_1791111894715.jpg';
-import snxperbotBox from '../assets/images/snxperbot_adaptive_box_1791064534614.jpg';
+import berserkerOfficialBox from '../assets/images/berserker_laptop_setup_1791797725326.jpg';
+import snxperbotBox from '../assets/images/snxperbot_laptop_setup_1791797959703.jpg';
 import tradingWallpaper from '../assets/images/dark_gold_trading_wallpaper_1791724705881.jpg';
 import { Shield, MessageCircle, ArrowRight, CheckCircle2, Coins, Sparkles } from 'lucide-react';
 
@@ -130,13 +130,13 @@ export const ProductSection: React.FC<ProductSectionProps> = ({ products, onView
                   </div>
 
                   {/* 📝 Product Explanation - With Photo Background */}
-                  <div className="relative rounded-2xl overflow-hidden border border-[#d4af37]/35 p-5 mb-6 shadow-xl">
-                    {/* Photo as Background */}
+                  <div className="relative rounded-2xl overflow-hidden border border-[#d4af37]/45 p-5 mb-6 shadow-2xl">
+                    {/* Photo as Background - Clearly Visualized */}
                     <div 
-                      className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity scale-105 pointer-events-none transition-transform duration-700 hover:scale-110"
+                      className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen scale-105 pointer-events-none transition-transform duration-700 hover:scale-110"
                       style={{ backgroundImage: `url(${tradingWallpaper})` }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#111218]/90 via-[#111218]/80 to-[#111218]/95 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#111218]/88 via-[#111218]/75 to-[#111218]/92 pointer-events-none" />
 
                     <div className="relative z-10 space-y-3">
                       <div>

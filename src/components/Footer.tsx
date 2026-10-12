@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, Phone, Mail, ShieldAlert, ArrowUpRight, Coins, Send, Terminal, ArrowRight } from 'lucide-react';
+import { MessageCircle, Phone, Mail, ShieldAlert, Send, Terminal, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
   navigate: (path: string) => void;
@@ -110,16 +110,6 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
               <p className="text-[11px] text-neutral-400 font-mono leading-relaxed">
                 Direct administrative console to manage products, pricing, license keys, and order dispatch.
               </p>
-              <div className="pt-2 border-t border-neutral-800">
-                <a
-                  href="/download-source"
-                  download="xtech-algo-trading-source.zip"
-                  className="inline-flex items-center space-x-1.5 text-[11px] text-black hover:brightness-110 font-bold bg-gradient-to-r from-[#d4af37] to-[#f5d061] px-3 py-1.5 rounded-lg shadow-sm transition-all"
-                >
-                  <ArrowUpRight className="h-3 w-3 text-black" />
-                  <span>Download Source (.ZIP)</span>
-                </a>
-              </div>
             </div>
           </div>
 

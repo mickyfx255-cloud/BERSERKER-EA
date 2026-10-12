@@ -78,25 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             SnxperBot
           </button>
           <button 
-            onClick={() => scrollToSection('systems-performance')} 
-            className="hover:text-white transition-colors cursor-pointer"
-          >
-            Real Results
-          </button>
-          <button 
-            onClick={() => scrollToSection('platform')} 
-            className="hover:text-white transition-colors cursor-pointer"
-          >
-            Terminal Specs
-          </button>
-          <button 
-            onClick={() => scrollToSection('advisor')} 
-            className="flex items-center space-x-1.5 text-emerald-400 hover:text-white transition-colors cursor-pointer"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-            <span>AI Advisor</span>
-          </button>
-          <button 
             onClick={() => scrollToSection('contact')} 
             className="hover:text-white transition-colors cursor-pointer"
           >
@@ -153,24 +134,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             className="block w-full text-left py-2 text-sm font-medium text-[#f87171] hover:text-white"
           >
             SnxperBot (The Reversion Engine)
-          </button>
-          <button
-            onClick={() => scrollToSection('systems-performance')}
-            className="block w-full text-left py-2 text-sm font-medium text-neutral-200 hover:text-white"
-          >
-            Systems Performance (Real Results)
-          </button>
-          <button
-            onClick={() => scrollToSection('platform')}
-            className="block w-full text-left py-2 text-sm font-medium text-neutral-200 hover:text-white"
-          >
-            MT4 &amp; MT5 Platform Specs
-          </button>
-          <button
-            onClick={() => scrollToSection('advisor')}
-            className="block w-full text-left py-2 text-sm font-bold text-emerald-400"
-          >
-            AI Trading Advisor
           </button>
           <button
             onClick={() => scrollToSection('contact')}

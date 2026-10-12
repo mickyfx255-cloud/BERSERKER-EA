@@ -6,10 +6,7 @@ import { HeroSection } from '../components/HeroSection';
 import { ProductSection } from '../components/ProductSection';
 import { BerserkerSection } from '../components/BerserkerSection';
 import { SnxperBotSection } from '../components/SnxperBotSection';
-import { SystemsPerformanceSection } from '../components/SystemsPerformanceSection';
 import { HowItWorks } from '../components/HowItWorks';
-import { PlatformSection } from '../components/PlatformSection';
-import { AIAdvisor } from '../components/AIAdvisor';
 import { RiskDisclaimerSection } from '../components/RiskDisclaimerSection';
 import { Footer } from '../components/Footer';
 import { FadeInOnScroll } from '../components/FadeInOnScroll';
@@ -68,7 +65,6 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       <FadeInOnScroll threshold={0.01}>
         <HeroSection
           onViewProduct={() => scrollTo('product')}
-          onAskAI={() => scrollTo('advisor')}
         />
       </FadeInOnScroll>
 
@@ -86,11 +82,6 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
         />
       </FadeInOnScroll>
 
-      {/* 📊 SECTION 4: SYSTEMS PERFORMANCE */}
-      <FadeInOnScroll>
-        <SystemsPerformanceSection />
-      </FadeInOnScroll>
-
       {/* Dual Flagship Systems Storefront & Specs */}
       <FadeInOnScroll>
         <ProductSection
@@ -102,16 +93,6 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       {/* How it works */}
       <FadeInOnScroll>
         <HowItWorks />
-      </FadeInOnScroll>
-
-      {/* Platform MetaTrader 4 & MetaTrader 5 Architecture */}
-      <FadeInOnScroll>
-        <PlatformSection />
-      </FadeInOnScroll>
-
-      {/* AI Algorithmic Advisor Chat */}
-      <FadeInOnScroll>
-        <AIAdvisor />
       </FadeInOnScroll>
 
       {/* ⚠️ REGULATORY RISK DISCLAIMER (Bottom of page, in small, readable text) */}

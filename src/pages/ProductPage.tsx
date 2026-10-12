@@ -227,9 +227,9 @@ export const ProductPage: React.FC<ProductPageProps> = ({ navigate }) => {
             {/* Right: Pricing, Specs & Order actions */}
             <div className="lg:col-span-6 space-y-6">
               {/* Product Explanation with Trading Wallpaper Photo Background */}
-              <div className="relative rounded-3xl overflow-hidden border border-[#d4af37]/35 p-6 shadow-xl">
+              <div className="relative rounded-3xl overflow-hidden border border-[#d4af37]/45 p-6 shadow-2xl">
                 <div 
-                  className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity scale-105 pointer-events-none"
+                  className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen scale-105 pointer-events-none"
                   style={{ backgroundImage: `url(${tradingWallpaper})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#111218]/90 via-[#111218]/80 to-[#111218]/95 pointer-events-none" />
